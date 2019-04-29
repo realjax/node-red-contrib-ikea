@@ -1,0 +1,36 @@
+{
+  "name": "node-red-contrib-xiaomi-smart-devices",
+  "version": "1.0.14",
+  "description": "Xiaomi Home Automation for NodeRed",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:igdr/node-red-contrib-xiaomi-smart-devices.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "Xiaomi",
+    "node-red"
+  ],
+  "node-red": {
+    "nodes": {
+      "xiaomi-gateway-config": "config/gateway-config.js",
+      "xiaomi-gateway": "devices/gateway/gateway.js",
+      "xiaomi-human-body-sensor": "devices/human-body-sensor/human-body-sensor.js",
+      "xiaomi-temperature-humidity-sensor": "devices/temperature-humidity-sensor/temperature-humidity-sensor.js",
+      "xiaomi-magic-cube-controller": "devices/magic-cube-controller/magic-cube-controller.js",
+      "xiaomi-window-door-sensor": "devices/window-door-sensor/window-door-sensor.js",
+      "xiaomi-water-sensor": "devices/water-sensor/water-sensor.js",
+      "xiaomi-switch": "devices/switch/switch.js",
+      "xiaomi-wall-switch": "devices/wall-switch/wall-switch.js",
+      "xiaomi-smoke-detector": "devices/smoke-detector/smoke-detector.js"
+    }
+  },
+  "author": "Igor Drozd",
+  "bugs": {
+    "url": "https://github.com/igdr/node-red-contrib-xiaomi-smart-devices/issues"
+  },
+  "dependencies": {
+    "mustache": "^2.3.0",
+    "dgram": "^1.0.1"
+  }
+}
