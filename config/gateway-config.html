@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  RED.nodes.registerType('xiaomi-gateway-config', {
+  RED.nodes.registerType('ikea-gateway-config', {
     category: 'config',
     defaults: {
       name: {value: ""},
@@ -9,46 +9,22 @@
       key: {value: ''},
     },
     label: function () {
-      return this.name || "xiaomi-gateway-config";
+      return this.name || "ikea-gateway-config";
     },
     oneditprepare: function () {
       $('#node-input-port').val(node.port);
       $('#node-input-address').val(node.address);
 
       let deviceInput = $("#node-config-input-devices");
-      let byDefault = 'temperature-humidity-sensor';
+      let byDefault = 'light';
       let types = [{
-        value: "temperature-humidity-sensor",
-        label: "Temperature & Humidity Sensor",
-        icon: "icons/node-red-contrib-xiaomi-smart-devices/temperature-humidity-sensor.png"
+        value: "light",
+        label: "A tradfri light source",
+        icon: "icons/node-red-contrib-ikea-smart-home/light.png"
       }, {
-        value: "window-door-sensor",
-        label: "Window Door Sensor",
-        icon: "icons/node-red-contrib-xiaomi-smart-devices/window-door-sensor.png"
-      }, {
-        value: "human-body-sensor",
-        label: "Human Body Sensor",
-        icon: "icons/node-red-contrib-xiaomi-smart-devices/human-body-sensor.png"
-      }, {
-        value: "switch",
-        label: "Switch",
-        icon: "icons/node-red-contrib-xiaomi-smart-devices/switch.png"
-      }, {
-        value: "magic-cube-controller",
-        label: "Magic Cube Controller",
-        icon: "icons/node-red-contrib-xiaomi-smart-devices/magic-cube-controller.png"
-      }, {
-        value: "water-sensor",
-        label: "Water Sensor",
-        icon: "icons/node-red-contrib-xiaomi-smart-devices/water-sensor.png"
-      }, {
-        value: "wall-switch",
-        label: "Wall Switch",
-        icon: "icons/node-red-contrib-xiaomi-smart-devices/wall-switch.png"
-      }, {
-        value: "smoke-detector",
-        label: "Smoke detector",
-        icon: "icons/node-red-contrib-xiaomi-smart-devices/smoke-detector.png"
+        value: "light-group",
+        label: "A group of light sources",
+        icon: "icons/node-red-contrib-ikea-smart-home/group-lights.png"
       }];
 
       deviceInput

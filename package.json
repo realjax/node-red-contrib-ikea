@@ -15,8 +15,8 @@
   ],
   "node-red": {
     "nodes": {
-      "xiaomi-gateway-config": "config/gateway-config.js",
-      "xiaomi-gateway": "devices/gateway/gateway.js"
+      "ikea-gateway-config": "config/gateway-config.js",
+      "ikea-gateway": "devices/gateway/gateway.js"
     }
   },
   "author": "Jacco Huysmans",

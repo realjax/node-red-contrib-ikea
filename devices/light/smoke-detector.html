@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  RED.nodes.registerType('xiaomi-window-door-sensor', {
+  RED.nodes.registerType('xiaomi-smoke-detector', {
     category: 'xiaomi',
     color: 'rgb(192, 222, 237)',
     defaults: {
@@ -13,10 +13,10 @@
     inputs: 1,
     outputs: 1,
     outputLabels: ["Status"],
-    paletteLabel: "door",
-    icon: "window-door-sensor.png",
+    paletteLabel: "smoke",
+    icon: "smoke-detector.png",
     label: function () {
-      return this.name || "Xiaomi Window Door Sensor";
+      return this.name || "Xiaomi smoke detector";
     },
     oneditprepare: function () {
       let node = this;
@@ -40,7 +40,7 @@
 
       for (key in configNode.deviceList) {
         let device = configNode.deviceList[key];
-        if (device.model === "window-door-sensor") {
+        if (device.model === "smoke-detector") {
           $('#node-input-sid').append('<option value="' + device.sid + '">' + device.desc + '</option>');
         }
       }
@@ -53,7 +53,7 @@
   });
 </script>
 
-<script type="text/x-red" data-template-name="xiaomi-window-door-sensor">
+<script type="text/x-red" data-template-name="xiaomi-smoke-detector">
     <div class="form-row">
         <label for="node-input-gateway"><i class="icon-tag"></i> Gateway</label>
         <input type="text" id="node-input-gateway" placeholder="xiaomi gateway">
@@ -86,15 +86,15 @@
 
 </script>
 
-<script type="text/x-red" data-help-name="xiaomi-window-door-sensor">
-    <p>The Xiaomi contact sensor node</p>
+<script type="text/x-red" data-help-name="xiaomi-smoke-detector">
+    <p>The Xiaomi Honeywell smoke detector</p>
 
     <h3>Inputs</h3>
     <dl class="message-properties">
         <dt>payload
             <span class="property-type">json</span>
         </dt>
-        <dd>Gateway <code>window-door-sensor</code> message of type <code>read_ack</code>, <code>heartbeat</code> or <code>report</code></dd>
+        <dd>Gateway <code>smoke-detector</code> message of type <code>heartbeat</code> or <code>report</code></dd>
     </dl>
 
     <h3>Outputs</h3>
@@ -108,7 +108,7 @@
     </ol>
 
     <h3>Details</h3>
-    <p>The incoming json message is parsed if the type model is <code>window-door-sensor</code> and
+    <p>The incoming json message is parsed if the type model is <code>smoke-detector</code> and
      the <code>sid</code> matches the configured value for this device.</p>
     <p>Three output types are supported:
         <ul>
@@ -121,24 +121,48 @@
     <h4>Full data</h4>
     <p>Passes the complete json object received from the gateway. Use this if you need the raw data.</p>
     <h4>Just values</h4>
-    <p>Only passes the sting values <code>open</code> or <code>close</code>.</p>
+    <p>Passes evaluated values, eg: <br>
+    <pre>
+    {
+      "alarm" : 0,
+      "density" : 0,
+      "status" : "unknown",
+      "previous_status" : "unknown",
+      "voltage" : 3.205,
+      "voltage_level" : "high",
+      "time" : 1553785011738,
+      "device" : "mySmokeAlarm"
+    }
+    </pre>
+    <br>
+    Notes
+    <ul>
+      <li>Alarm values are not all discovered. So far 0  = standby, 2  = alarm and 8 = low battery</li>
+      <li>Status is set according to (known) alarm values</li>
+      <li>The voltage does not seem to change. During testing this stayed at 3.205 even though the provided voltage to the detector was much less.
+    </ul>
+    </p>
     <h4>Template</h4>
     <p>Use your own template to pass the values on. The template can contain <a href="http://mustache.github.io/mustache.5.html">mustache-style</a> tags.
         Any property from the data section of the full object can be used.</p>
 
     <p>Sample message:</p>
-    <p><pre>
+
+
     {
-        cmd: "read_ack"
-        model: "window-door-sensor"
+        cmd: "report"
+        model: "smoke-detector"
         sid: "158d000112fb5d"
         short_id: 50301
         data: "{
                     "voltage":3015,
-                    "status":"close"
+                    "density":"0"
                }"
     }</pre></p>
-
+    <h4>Disclaimer</h4>
+    <p>Be aware that this node was developed by reverse engineering the communication protocol of the smoke detector.
+    We can not be held responsible for the incorrect working of the smoke-detector node. Make sure you have other ways that notify you when smoke is detected.
+    </p>
 
 
 </script>
