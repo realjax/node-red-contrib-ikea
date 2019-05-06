@@ -1,6 +1,6 @@
 module.exports = function (RED) {
 
-  function XiaomiGatewayConfigNode(config) {
+  function IkeaGatewayConfigNode(config) {
     RED.nodes.createNode(this, config);
     this.name = config.name;
     this.deviceList = config.deviceList || [];
@@ -19,6 +19,6 @@ module.exports = function (RED) {
     }
   }
 
-  RED.nodes.registerType("xiaomi-gateway-config", XiaomiGatewayConfigNode);
+  RED.nodes.registerType("ikea-gateway-config", IkeaGatewayConfigNode);
 
 };

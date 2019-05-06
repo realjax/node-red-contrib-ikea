@@ -4,9 +4,9 @@
     defaults: {
       name: {value: ""},
       deviceList: {value: [{sid: "", desc: "", model: ""}]},
-      address: {value: '224.0.0.50'},
+      address: {value: '192.168.1.1'},
       port: {value: '9898'},
-      key: {value: ''},
+      key: {value: ''}
     },
     label: function () {
       return this.name || "ikea-gateway-config";
@@ -103,7 +103,7 @@
   });
 </script>
 
-<script type="text/x-red" data-template-name="xiaomi-gateway-config">
+<script type="text/x-red" data-template-name="ikea-gateway-config">
     <div class="form-row">
         <label for="node-config-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Name">
@@ -125,21 +125,15 @@
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="xiaomi-gateway-config">
-    <p>Xiaomi Gateway Config node</p>
+<script type="text/x-red" data-help-name="ikea-gateway-config">
+    <p>Ikea Gateway Config node</p>
     <h3>Details</h3>
     <p>This configuration node is used by the Xiaomi device nodes. Here you can add
     devices with their device-id (SID), type and a description.</p>
     <p>At the moment the following devices are supported:
     <lu>
-        <li>Humidity & Temperature sensor</li>
-        <li>Body Motion Sensor</li>
-        <li>Magic Cube Controller</li>
-        <li>Water Leak Sensor</li>
-        <li>Window-Door sensor</li>
-        <li>Switch (button)</li>
-        <li>Wall switch</li>
-        <li>Smoke dectector</li>
+        <li>Single light bulb</li>
+        <li>Group of lights</li>
     </lu>
     </p>
 </script>

@@ -2,9 +2,8 @@ const battery = require('../../common/battery');
 
 module.exports = function (RED) {
   'use strict';
-  let mustache = require('mustache');
 
-  function XiaomiSmokeDetectorNode(config) {
+  function IkeaLightNode(config) {
     RED.nodes.createNode(this, config);
     this.gateway = RED.nodes.getNode(config.gateway);
     this.sid = config.sid;
@@ -80,9 +79,9 @@ module.exports = function (RED) {
           } else if (node.output === '2') {
             //template
             if (data.status && data.status === 'open') {
-              result = mustache.render(node.openmsg, data);
+              //result = mustache.render(node.openmsg, data);
             } else {
-              result = mustache.render(node.closemsg, data);
+              //result = mustache.render(node.closemsg, data);
             }
           }
 
@@ -100,5 +99,5 @@ module.exports = function (RED) {
     }
   }
 
-  RED.nodes.registerType('xiaomi-smoke-detector', XiaomiSmokeDetectorNode);
+  RED.nodes.registerType('ikea-light', IkeaLightNode);
 };

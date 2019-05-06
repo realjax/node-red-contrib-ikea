@@ -1,7 +1,7 @@
 'use strict';
 
 const battery = require('../../common/battery');
-const dgram = require('dgram');
+
 const crypto = require('crypto');
 
 /**
@@ -57,7 +57,7 @@ module.exports = function (RED) {
    * @param {Object} config
    * @constructor
    */
-  function XiaomiGatewayNode(config) {
+  function IkeaGatewayNode(config) {
     RED.nodes.createNode(this, config);
 
     this.gateway = RED.nodes.getNode(config.gateway);
@@ -74,9 +74,9 @@ module.exports = function (RED) {
       let socket;
       let reuse = false;
       if (!udpInputPortsInUse.hasOwnProperty(this.port)) {
-        socket = dgram.createSocket({type: 'udp4'});  // default to udp4
-        socket.bind(this.gateway.port);
-        udpInputPortsInUse[this.port] = socket;
+       // socket = dgram.createSocket({type: 'udp4'});  // default to udp4
+       // socket.bind(this.gateway.port);
+       // udpInputPortsInUse[this.port] = socket;
       } else {
         this.log('UDP socket is aleady used, try reusing existing', this.port);
         socket = udpInputPortsInUse[this.port];  // re-use existing
@@ -162,5 +162,5 @@ module.exports = function (RED) {
   });
 
   //register new type
-  RED.nodes.registerType('xiaomi-gateway', XiaomiGatewayNode);
+  RED.nodes.registerType('ikea-gateway', IkeaGatewayNode);
 };

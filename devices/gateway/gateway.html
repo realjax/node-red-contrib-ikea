@@ -1,9 +1,9 @@
 <script type="text/javascript">
-  RED.nodes.registerType('xiaomi-gateway', {
-    category: 'xiaomi',
-    color: 'rgb(192, 222, 237)',
+  RED.nodes.registerType('ikea-gateway', {
+    category: 'ikea',
+    color: '#E2D96E',
     defaults: {
-      gateway: {value: "", type: "xiaomi-gateway-config"},
+      gateway: {value: "", type: "ikea-gateway-config"},
       name: {value: ''},
       healthcheck: {value: 60},
     },
@@ -12,15 +12,15 @@
     paletteLabel: "gateway",
     icon: "gateway.png",
     label: function () {
-      return this.name || "Xiaomi Gateway";
+      return this.name || "Ikea Gateway";
     }
   });
 </script>
 
-<script type="text/x-red" data-template-name="xiaomi-gateway">
+<script type="text/x-red" data-template-name="ikea-gateway">
     <div class="form-row">
         <label for="node-input-gateway"><i class="icon-tag"></i> Gateway</label>
-        <input type="text" id="node-input-gateway" placeholder="Xiaomi Gateway">
+        <input type="text" id="node-input-gateway" placeholder="Ikea Gateway">
     </div>
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
@@ -32,7 +32,7 @@
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="xiaomi-gateway">
+<script type="text/x-red" data-help-name="ikea-gateway">
     <p>The Xiaomi Gateway</p>
 
     <h3>Details</h3>

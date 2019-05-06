@@ -16,7 +16,9 @@
   "node-red": {
     "nodes": {
       "ikea-gateway-config": "config/gateway-config.js",
-      "ikea-gateway": "devices/gateway/gateway.js"
+      "ikea-gateway": "devices/gateway/gateway.js",
+      "ikea-light": "devices/light/light.js",
+      "ikea-light-group": "devices/light-group/light-group.js"
     }
   },
   "author": "Jacco Huysmans",
@@ -24,7 +26,6 @@
     "url": "https://github.com/igdr/node-red-contrib-xiaomi-smart-devices/issues"
   },
   "dependencies": {
-    "mustache": "^2.3.0",
-    "dgram": "^1.0.1"
+    "node-tradfri-client": "^1.5.0"
   }
 }
