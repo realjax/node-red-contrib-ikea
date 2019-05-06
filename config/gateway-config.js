@@ -4,9 +4,8 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     this.name = config.name;
     this.deviceList = config.deviceList || [];
-    this.key = config.key;
-    this.port = config.port || 9898;
-    this.address = config.address || '224.0.0.50';
+    this.securityCode = config.securityCode || 1234;
+    this.address = config.address || '192.168.1.100';
 
     this.getDeviceName = function (sid) {
       for (let i in this.deviceList) {
