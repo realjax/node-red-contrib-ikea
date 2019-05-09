@@ -8,7 +8,7 @@
     defaults: {
       name: {value: ""},
       address: {value: '192.168.1.1'},
-      security code: {value: ""},
+      securityCode: {value: ""},
       deviceList: {value: [{sid: "", desc: "", model: ""}]},
     },
     label: function () {
@@ -16,6 +16,7 @@
     },
     oneditprepare: function () {
       console.log("this?");
+     /*
       $('#node-input-security-code').val(node.securityCode);
       $('#node-input-address').val(node.address);
 
@@ -83,6 +84,29 @@
       }
       let listHeight = deviceInput.editableList('items').size() * 51 + 50;
       deviceInput.editableList('height', listHeight);
+*/
+      $("#node-config-lookup-serial").click(function() {
+        $("#node-config-lookup-serial").addClass('disabled');
+        $.getJSON('ikea-gateway',function(data) {
+          console.log(data);
+          $("#node-config-lookup-serial").removeClass('disabled');
+          var ports = [];
+          $.each(data, function(i, port) {
+            ports.push(port.name);
+          });
+          $("#node-input-address").autocomplete({
+            source:ports,
+            minLength:0,
+            close: function( event, ui ) {
+              $("#nnode-input-address").autocomplete( "destroy" );
+            }
+          }).autocomplete("search","");
+        });
+      });
+
+
+
+
     },
     oneditsave: function () {
       let devices = $("#node-config-input-devices").editableList('items');
@@ -112,12 +136,13 @@
         <input type="text" id="node-config-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-input-address"><i class="fa fa-tag"></i> Address</label>
-        <input type="text" id="node-input-address" placeholder="Address">
+        <label for="node-input-address"><i class="fa fa-tag"></i> IP/Host</label>
+        <input type="text" id="node-input-address" placeholder="IP/Host">
+        <a id="node-config-lookup-serial" class="btn"><i id="node-config-lookup-serial-icon" class="fa fa-search"></i></a>
     </div>
     <div class="form-row">
-        <label for="node-input-security-code"><i class="fa fa-tag"></i> Port</label>
-        <input type="text" id="node-input-security-code" placeholder="security-code">
+        <label for="node-input-security-code"><i class="fa fa-tag"></i>Security code</label>
+        <input type="text" id="node-input-security-code" placeholder="Security code">
     </div>
     <div class="form-row node-config-input-devices">
         <ol id="node-config-input-devices"></ol>

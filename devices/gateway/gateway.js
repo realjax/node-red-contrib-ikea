@@ -156,9 +156,9 @@ module.exports = function (RED) {
     }
   }
 
-  //gets sockets
-  RED.httpAdmin.get('/udp-ports/:id', RED.auth.needsPermission('udp-ports.read'), (req, res) => {
-    res.json(Object.keys(udpInputPortsInUse));
+ //gets sockets
+  RED.httpAdmin.get('/ikea-gateway', RED.auth.needsPermission('ikea-gateway.read'), (req, res) => {
+    res.json([{"name":"server1"},{"name":"server2"},{"name":"serve3"}]);
   });
 
   //register new type
