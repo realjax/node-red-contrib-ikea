@@ -1,8 +1,9 @@
 'use strict';
 
-const battery = require('../../common/battery');
-
 const crypto = require('crypto');
+
+const TradfriClient = require('node-tradfri-client');
+
 
 /**
  * @param <Buffer> message
@@ -36,7 +37,7 @@ function getGatewayToken(key, msg) {
   if (key) {
     let token = msg.payload.token;
     if (token) {
-      let cipher = crypto.createCipheriv('aes128', key, (new Buffer('17996d093d28ddb3ba695a2e6f58562e', 'hex')));
+      let cipher = 123;
       let encoded_string = cipher.update(token, 'utf8', 'hex');
 
       encoded_string += cipher.final('hex');
@@ -157,9 +158,49 @@ module.exports = function (RED) {
   }
 
  //gets sockets
+  var discovered,discover,connect,testTradfri,error;
+
   RED.httpAdmin.get('/ikea-gateway', RED.auth.needsPermission('ikea-gateway.read'), (req, res) => {
-    res.json([{"name":"server1"},{"name":"server2"},{"name":"serve3"}]);
+
+    var discover = async function(res) {
+      try {
+        var discovered = await TradfriClient.discoverGateway();
+        //return discovered;
+        return res.json([{"name": discovered.host}]);
+      } catch (e){
+        return res.json([{"name": "Nothing found, please enter manually"}]);
+      }
+    };
+    discover(res);
   });
+
+
+  RED.httpAdmin.get('/ikea-gateway-connect', RED.auth.needsPermission('ikea-gateway.connect'), (req, res) => {
+    var connect = async function(res,req) {
+      testTradfri = new TradfriClient.TradfriClient(req.query.address);
+      try {
+        var keys = await testTradfri.authenticate(req.query.code);
+        return res.json(keys);
+      } catch (e) {
+        if (e instanceof TradfriClient.TradfriError) {
+          switch (e.code) {
+            case TradfriClient.TradfriErrorCodes.ConnectionTimedOut: {
+              error = "Couldn't connect, check IP/Host";
+              break;
+            }
+            case TradfriClient.TradfriErrorCodes.AuthenticationFailed: {
+              error = "The security code is wrong";
+              break;
+            }
+            default:
+              error = "unknown error";
+          }
+        }
+        return res.json({"error":error});
+      }
+    };
+  connect(res,req);
+});
 
   //register new type
   RED.nodes.registerType('ikea-gateway', IkeaGatewayNode);

@@ -1,163 +1,139 @@
 <script type="text/javascript">
-  //import { discoverGateway } from "node-tradfri-client";
 
-  //const tradfriClient = require('node-tradfri-client');
 
-  RED.nodes.registerType('ikea-gateway-config', {
+  RED.nodes.registerType('ikea-smart-devices-gateway-config', {
     category: 'config',
     defaults: {
-      name: {value: ""},
-      address: {value: '192.168.1.1'},
-      securityCode: {value: ""},
-      deviceList: {value: [{sid: "", desc: "", model: ""}]},
+      name: { value: "" },
+      address: { value: "192.168.1.1", required : true },
+      identity:{ value: "" },
+      psk: { value: "" }
     },
     label: function () {
-      return this.name || "ikea-gateway-config";
+      return this.name || "ikea-smart-devices-gateway-config";
     },
     oneditprepare: function () {
-      console.log("this?");
-     /*
-      $('#node-input-security-code').val(node.securityCode);
-      $('#node-input-address').val(node.address);
+      let sec = $("#node-config-input-securityCode");
+      let psk = $("#node-config-input-psk");
+      let indentity = $("#node-config-input-identity");
 
-      let deviceInput = $("#node-config-input-devices");
-      let byDefault = 'light';
-      let types = [{
-        value: "light",
-        label: "A tradfri light source",
-        icon: "icons/node-red-contrib-ikea-smart-home/light.png"
-      }, {
-        value: "light-group",
-        label: "A group of light sources",
-        icon: "icons/node-red-contrib-ikea-smart-home/group-lights.png"
-      }];
+      let inputAddress = $("#node-config-input-address");
+      let inputSecCode = $("#node-config-input-securityCode");
+      let adressButton =  $("#node-config-lookup-address");
+      let secCodeButton = $("#node-config-test-seccode");
+      let pskrow = $("#psk-row");
+      let identityrow = $("#identity-row");
 
-      deviceInput
-        .css('min-height', '250px').css('min-width', '600px')
-        .editableList({
-          addItem: function (container, i, device) {
-            if (!device.hasOwnProperty('model')) {
-              device.model = byDefault;
-            }
-            let row = $('<div/>').appendTo(container);
-
-            $('<label/>', {
-              for: "node-config-input-sid-" + i,
-              style: "margin-left: 3px; width: 15px;vertical-align:middle"
-            }).appendTo(row);
-
-            let sid = $('<input/>', {
-              id: "node-config-input-sid-" + i,
-              type: "text",
-              placeholder: "SID",
-              style: "width:auto;vertical-align:top"
-            }).appendTo(row);
-
-            sid.typedInput({
-              default: byDefault,
-              types: types
-            });
-
-            $('<label/>', {
-              for: "node-config-input-desc-" + i,
-              style: "margin-left: 7px; width: 20px;vertical-align:middle"
-            }).html('<i class="fa fa-pencil-square-o"></i>').appendTo(row);
-
-            let desc = $('<input/>', {
-              id: "node-config-input-desc-" + i,
-              type: "text",
-              placeholder: "description2",
-              style: "width:auto;vertical-align:top"
-            }).appendTo(row);
-
-            sid.typedInput('value', device.sid);
-            sid.typedInput('type', device.model);
-            desc.val(device.desc);
-          },
-          sortable: true,
-          removable: true
-        });
-
-      for (let i = 0; i < this.deviceList.length; i++) {
-        let device = this.deviceList[i];
-        deviceInput.editableList('addItem', device);
+      if ($.trim(psk.val()) !== ""){
+        $('#show-identity').text(indentity.val());
+        $('#show-psk').text(psk.val());
+        pskrow.removeClass('hidden');
+        identityrow.removeClass('hidden');
       }
-      let listHeight = deviceInput.editableList('items').size() * 51 + 50;
-      deviceInput.editableList('height', listHeight);
-*/
-      $("#node-config-lookup-serial").click(function() {
-        $("#node-config-lookup-serial").addClass('disabled');
+      sec.keyup(function(){
+        $.trim(sec.val()) !== "" && $.trim(inputAddress.val()) !== "" ? secCodeButton.removeClass('hidden'):secCodeButton.addClass('hidden');
+        }
+      );
+      adressButton.click(function() {
+        inputWas = inputAddress.val();
+        inputAddress.val('please wait..');
+        adressButton.addClass('disabled');
+        inputAddress.prop('readonly', true);
         $.getJSON('ikea-gateway',function(data) {
-          console.log(data);
-          $("#node-config-lookup-serial").removeClass('disabled');
-          var ports = [];
+          adressButton.removeClass('disabled');
+          inputAddress.val(inputWas);
+          inputAddress.prop('readonly', false);
+          var gateways = [];
           $.each(data, function(i, port) {
-            ports.push(port.name);
+            gateways.push(port.name);
           });
-          $("#node-input-address").autocomplete({
-            source:ports,
+         inputAddress.autocomplete({
+            source:gateways,
             minLength:0,
             close: function( event, ui ) {
-              $("#nnode-input-address").autocomplete( "destroy" );
+              inputAddress.autocomplete( "destroy" );
             }
           }).autocomplete("search","");
         });
       });
-
-
-
-
-    },
-    oneditsave: function () {
-      let devices = $("#node-config-input-devices").editableList('items');
-      let node = this;
-      let devicesArray = [];
-      devices.each(function (i) {
-        let deviceElement = $(this);
-        let sid = deviceElement.find("#node-config-input-sid-" + i).val();
-        let desc = deviceElement.find("#node-config-input-desc-" + i).val();
-        let model = deviceElement.find("#node-config-input-sid-" + i).typedInput('type');
-        let d = {};
-        d['sid'] = sid;
-        d['desc'] = desc;
-        d['model'] = model;
-        devicesArray.push(d);
+      secCodeButton.click(function() {
+        pskrow.addClass('hidden');
+        identityrow.addClass('hidden');
+        inputSecWas = inputSecCode.val();
+        inputSecCode.val('please wait..');
+        adressButton.addClass('disabled');
+        secCodeButton.addClass('disabled');
+        inputSecCode.prop('readonly', true);
+        inputAddress.prop('readonly', true);
+        $.getJSON('ikea-gateway-connect',{"address":inputAddress.val(),"code":inputSecWas},function(data) {
+          adressButton.removeClass('disabled');
+          inputSecCode.val(inputSecWas);
+          inputSecCode.prop('readonly', false);
+          inputAddress.prop('readonly', false);
+          if (data.error !== undefined){
+            $('#config-message').text(data.error);
+          }
+          if (data.psk!== undefined && data.identity !== undefined){
+            pskrow.removeClass('hidden');
+            identityrow.removeClass('hidden');
+            $('#show-identity').text(data.identity);
+            $('#show-psk').text(data.psk);
+            $('#node-config-input-identity').val(data.identity);
+            $('#node-config-input-psk').val(data.psk);
+          }
+        });
       });
-      node.deviceList = devicesArray;
-      node.address = $("#node-input-address").val();
-      node.securityCode = $("#node-input-security-code").val();
     }
   });
 </script>
 
-<script type="text/x-red" data-template-name="ikea-gateway-config">
+<script type="text/x-red" data-template-name="ikea-smart-devices-gateway-config">
     <div class="form-row">
         <label for="node-config-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Name">
     </div>
     <div class="form-row">
         <label for="node-input-address"><i class="fa fa-tag"></i> IP/Host</label>
-        <input type="text" id="node-input-address" placeholder="IP/Host">
-        <a id="node-config-lookup-serial" class="btn"><i id="node-config-lookup-serial-icon" class="fa fa-search"></i></a>
+        <input type="text" id="node-config-input-address" placeholder="IP/Host" style="width:60%;">
+        <a id="node-config-lookup-address" class="btn"><i id="node-config-lookup-address-icon" class="fa fa-search"></i></a>
     </div>
     <div class="form-row">
-        <label for="node-input-security-code"><i class="fa fa-tag"></i>Security code</label>
-        <input type="text" id="node-input-security-code" placeholder="Security code">
+        <label for="node-input-security-code"><i class="fa fa-tag"></i> Securitycode</label>
+        <input type="text" id="node-config-input-securityCode" placeholder="Security code" style="width:60%;">
+        <a id="node-config-test-seccode" class="btn hidden"><i id="node-config-test-seccode-icon" class="fa fa-key"></i></a>
+    </div>
+    <div class="form-row">
+        <i class="fa fa-exclamation-triangle"></i>&nbsp;&nbsp;<span id="config-message" class="debug-message-type-string"></span>
+    </div>
+    <div class="form-row" id="identity-row" class="hidden">
+        <label for="node-input-identity"><i class="fa fa-tag"></i> Identity:</label>
+        <span id="show-identity"></span>
+        <input type = "hidden" id="node-config-input-identity">
+    </div>
+    <div class="form-row" id="psk-row" class="hidden">
+        <label for="node-input-psk"><i class="fa fa-tag"></i> PSK:</label>
+        <span id="show-psk"></span>
+        <input type = "hidden" id="node-config-input-psk">
     </div>
     <div class="form-row node-config-input-devices">
         <ol id="node-config-input-devices"></ol>
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="ikea-gateway-config">
+<script type="text/x-red" data-help-name="ikea-smart-devices-gateway-config">
     <p>Ikea Gateway Config node</p>
     <h3>Details</h3>
-    <p>This configuration node is used by the Xiaomi device nodes. Here you can add
-    devices with their device-id (SID), type and a description.</p>
-    <p>At the moment the following devices are supported:
-    <lu>
-        <li>Single light bulb</li>
-        <li>Group of lights</li>
-    </lu>
+    <p>This sets the details for your Ikea gateway.</p>
+    <h4>Name</h4>
+    <p>Give this connection a name</p>
+    <h4>IP/Host</h4>
+    <p>The hostname (or ip address) of your gateway. Click the <i class="fa fa-search"></i> icon to scan your network for gateways. When one is found you can select it from the dropdownlist.</p>
+    <h5>Securitycode</h5>
+    <p>The securitycode is needed (together with the IP/Host name) to authenticate with the gateway.
+    <br>The securitycode is printed on your gateway. Enter it here and when done click the  <i class="fa fa-key"></i> icon to authenticate.
+    <br>If the authentication was successful an <strong>identity</strong> and a <strong>psk</strong> value will be returned.
+    <br><br><strong>Note:</strong> To comply with IKEA's requests, the security code is not stored permanently. Instead, the returned identity and psk are used for future connections to the gateway.
+    <h5>Identity and PSK</h5>
+    These values are returned by the gateway when succesfully authenticated and are used for connections to the gateway. They can not be changed manually.
     </p>
 </script>

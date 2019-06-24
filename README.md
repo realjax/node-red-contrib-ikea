@@ -15,7 +15,7 @@ To install this module use Node-Red GUI installer or console command:
 npm i node-red-contrib-ikea-smart-home
 ```
 
-# Example
+### Example
 
 
 ![Example](example.png)

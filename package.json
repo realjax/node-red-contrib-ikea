@@ -1,10 +1,10 @@
 {
   "name": "node-red-contrib-ikea-smart-home",
-  "version": "1.0.14",
+  "version": "1.0.0",
   "description": "Ikea Smart Home Automation for NodeRed",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:igdr/node-red-contrib-xiaomi-smart-devices.git"
+    "url": "git+ssh://git@github.com:igdr/node-red-contrib-ikea-smart-devices.git"
   },
   "license": "MIT",
   "keywords": [
@@ -15,7 +15,7 @@
   ],
   "node-red": {
     "nodes": {
-      "ikea-gateway-config": "config/gateway-config.js",
+      "ikea-smart-devices-gateway-config": "config/gateway-config.js",
       "ikea-gateway": "devices/gateway/gateway.js",
       "ikea-light": "devices/light/light.js",
       "ikea-light-group": "devices/light-group/light-group.js"
