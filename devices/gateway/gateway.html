@@ -34,14 +34,14 @@
 </script>
 
 <script type="text/x-red" data-help-name="ikea-gateway">
-    <p>The Xiaomi Gateway</p>
+    <p>Ikea Tradfri Gateway</p>
 
     <h3>Details</h3>
-    <p>The node automatically connects to the Xiaomi Gateway via UPD protocol to the <code>address</code> and <code>port</code> which should be set in the node configuration</p>
+    <p>The node automatically connects to the Tradfri gateway using the <code>address</code>, <code>identity</code> and <code>PSK</code> which are set in the node configuration</p>
 
     <h3>Inputs</h3>
     <dl class="message-properties">
-        <dt>Command to the Xiaomi Gateway <span class="property-type">json</span>, example: </dt>
+        <dt>Command to the gateway <span class="property-type">json</span>, example: </dt>
         <dd>
             <pre>
 {
@@ -55,7 +55,7 @@
     </dl>
 
     <h3>Outputs</h3>
-    <p>Passes the complete json object received from the Xiaomi Gateway</p>
+    <p>Passes the complete json object received from the gateway</p>
 
     <p>Sample message:</p>
     <p>
@@ -78,11 +78,5 @@
     </pre>
     </p>
 
-    <p>To be able to receive messages from the Xiaomi gateway, you need to set the gateway
-    in developer mode. Once in developer mode, the gateway sends JSON messages over the network as
-    UDP packages. On the internet their are a lot of guides on how to put the gateway in developer mode.</p>
-    <p>If you want to control devices, you need to set the key from the gateway. The key can be
-    retrieved via the Xiaomi Home App when in developer mode. Enter the key here and it is used
-    together with the token from the gateway's heartbeat message to recalculate the key to switch
-    </p>
+
 </script>
