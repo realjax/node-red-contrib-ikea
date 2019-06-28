@@ -26,6 +26,7 @@
     "url": "https://github.com/igdr/node-red-contrib-xiaomi-smart-devices/issues"
   },
   "dependencies": {
-    "node-tradfri-client": "^1.5.0"
+    "node-tradfri-client": "^1.5.0",
+    "lodash":"^4.17.11"
   }
 }
