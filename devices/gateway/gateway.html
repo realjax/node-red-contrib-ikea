@@ -18,21 +18,22 @@
 
 <script type="text/x-red" data-template-name="ikea-gateway">
     <div class="form-row">
-        <label for="node-input-gateway"><i class="icon-tag"></i> Gateway</label>
-        <input type="text" id="node-input-gateway" placeholder="Ikea Gateway">
+        <label for="node-input-gateway"><i class="icon-cog"></i> Gateway</label>
+        <input type="text" id="node-input-gateway" placeholder="Gateway configuration">
 
     </div>
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="Name">
+        <input type="text" id="node-input-name" placeholder="This intance name">
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="ikea-gateway">
     <p>Ikea Tradfri Gateway</p>
 
+    <p>This node retrieves specific info from the Ikea gateway</p>
     <h3>Details</h3>
-    <p>The node automatically connects to the Tradfri gateway using the <code>address</code>, <code>identity</code> and <code>PSK</code> which are set in the node configuration</p>
+
 
     <h3>Inputs</h3>
     <dl class="message-properties">

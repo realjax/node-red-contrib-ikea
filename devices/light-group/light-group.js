@@ -1,4 +1,4 @@
-const battery = require('../../common/battery');
+
 
 module.exports = function (RED) {
   'use strict';

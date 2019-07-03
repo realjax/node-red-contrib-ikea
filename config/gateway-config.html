@@ -40,7 +40,7 @@
         inputAddress.val('please wait..');
         adressButton.addClass('disabled');
         inputAddress.prop('readonly', true);
-        $.getJSON('ikea-gateway',function(data) {
+        $.getJSON('ikea-gateway-find',function(data) {
           adressButton.removeClass('disabled');
           inputAddress.val(inputWas);
           inputAddress.prop('readonly', false);
@@ -66,7 +66,7 @@
         secCodeButton.addClass('disabled');
         inputSecCode.prop('readonly', true);
         inputAddress.prop('readonly', true);
-        $.getJSON('ikea-gateway-connect',{"address":inputAddress.val(),"code":inputSecWas},function(data) {
+        $.getJSON('ikea-gateway-authenticate',{"address":inputAddress.val(),"code":inputSecWas},function(data) {
           adressButton.removeClass('disabled');
           inputSecCode.val(inputSecWas);
           inputSecCode.prop('readonly', false);
@@ -125,7 +125,7 @@
 <script type="text/x-red" data-help-name="ikea-smart-devices-gateway-config">
     <p>Ikea Gateway Config node</p>
     <h3>Details</h3>
-    <p>This sets the details for your Ikea gateway.</p>
+    <p>This node retrieves info from the Ikea gateway.</p>
     <h4>Name</h4>
     <p>Give this connection a name</p>
     <h4>IP/Host</h4>
