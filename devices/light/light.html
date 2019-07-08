@@ -11,6 +11,7 @@
       name:          {value:""},
       deviceId:      {value: "", required:true, validate:RED.validators.number()},
       deviceName:    {value: ""},
+      detectAlive:   {value: false}
     },
     align: 'right',
     inputs:1,
@@ -74,8 +75,11 @@
         <input type="text" id="node-input-deviceName" placeholder="none" style="width:60%;" readonly>
         <a id="node-device-lookup" class="btn"><i id="node-device-lookup-icon" class="fa fa-search"></i></a>
     </div>
+     <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-detectAlive" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-detectAlive" style="width: 70%;" >Detect light is  alive?</label>
     </div>
-
 </script>
 
 <script type="text/x-red" data-help-name="ikea light">

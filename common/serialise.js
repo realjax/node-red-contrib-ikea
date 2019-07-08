@@ -1,5 +1,5 @@
 module.exports = {
-  lightFromAccessory : function (accessory) {
+  lightFromAccessory: function (accessory) {
     return Object.assign({}, {
       id: accessory.instanceId,
       name: accessory.name,
@@ -22,8 +22,44 @@ module.exports = {
       power: accessory.deviceInfo.power
     });
   },
+  lightColorTempComparator: function (obj1, obj2) {
 
-  toGatewayLite : function (gateway) {
+    return (obj1.id == obj2.id) &&
+    (obj1.name == obj2.name) &&
+    (obj1.model == obj2.model) &&
+    (obj1.firmware == obj2.firmware) &&
+    (obj1.alive == obj2.alive) &&
+    (obj1.on == obj2.on) &&
+    (obj1.onTime == obj2.onTime) &&
+    (obj1.brightness == obj2.brightness) &&
+    (obj1.colorTemperature - obj2.colorTemperature < 3) &&
+    (obj1.colorTemperature - obj2.colorTemperature > -3) &&
+    (obj1.color == obj2.color) &&
+    (obj1.hue == obj2.hue) &&
+    (obj1.saturation == obj2.saturation) &&
+    (obj1.colorX - obj2.colorX < 300) &&
+    (obj1.colorX - obj2.colorX > -300) &&
+    (obj1.colorY - obj2.colorY < 300) &&
+    (obj1.colorY - obj2.colorY > -300) &&
+    (obj1.transition == obj2.transition) &&
+    (obj1.created == obj2.created) &&
+    (obj1.seen == obj2.seen) &&
+    (obj1.type == obj2.type) &&
+    (obj1.power == obj2.power);
+  },
+
+  lightOperation: function (item) {
+    return Object.assign({}, {
+      onOff: item.onOff,
+      dimmer: item.dimmer,
+      transitionTime: item.transitionTime,
+      colorTemperature: item.colorTemperature,
+      color: item.color,
+      hue: item.hue,
+      saturation: item.saturation
+    });
+  },
+  basicGateway: function (gateway) {
     return Object.assign({}, {
       alexaPairStatus: gateway.alexaPairStatus || false,
       googleHomePairStatus: gateway.googleHomePairStatus,
@@ -42,7 +78,7 @@ module.exports = {
       dstEndMonth: gateway.dstEndMonth,
       dstEndDay: gateway.dstEndDay,
       dstEndHour: gateway.dstEndHour,
-      dstEndMinute:gateway.dstEndMinute,
+      dstEndMinute: gateway.dstEndMinute,
       dstTimeOffset: gateway.dstTimeOffset
     });
   }

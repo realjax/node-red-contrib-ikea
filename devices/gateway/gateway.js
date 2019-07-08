@@ -11,28 +11,32 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     let node = this;
     node.server = RED.nodes.getNode(config.gateway);
-    node.connection = false
+    node.gatewayReachable = false;
     node.status({fill: 'grey', shape: 'ring', text: 'not connected'});
 
     node.server.getConnection.then(
       () => node.onConnected(),
       () => node.status({fill: 'red', shape: 'ring', text: 'could not connect'})
-    ).catch((err) => console.log(err));
+    ).catch((err) => console.log("gateway error: ",err));
 
     node.onConnected = function(){
       node.status({fill: "green", shape: "ring", text: "connected"});
-      node.debuglog("received gateway connection");
-      node.server.registerListener("gateway",config.id, node.registeredCallback);
+      node.gatewayReachable = node.server.gatewayReachable;
+      node.server.registerListener(node.server.types.GATEWAY,node.type,config.id, node.registeredCallback);
 
       node.on("input", (msg) => {
         var retMsg = null;
         var retArray = [];
         var  objectList = {};
 
-        if (!msg.hasOwnProperty("payload")) { return; } // do nothing unless we have a payload
+        if (!msg.hasOwnProperty("payload") || !node.gatewayReachable) { return; } // do nothing unless we have a payload and gateway is reachable
 
           let cmd = msg.payload;
           switch (cmd.toUpperCase()) {
+            case "DEBUG":
+              node.server.debug("eeee");
+              break;
+            case "PLUGS":
             case "REBOOT":
               node.server.tradfri.rebootGateway().then(()=>node.debuglog("reboot has started"),()=>node.debuglog("reboot failed to start")).catch(err => console.log(err));
               break;
@@ -74,7 +78,7 @@ module.exports = function (RED) {
 
       });
       node.on("close", function(removed, done) {
-        node.server.unregisterListener("gateway",config.id);
+        node.server.unregisterListener(node.server.types.GATEWAY,node.type, config.id);
         done();
       });
 
@@ -85,8 +89,12 @@ module.exports = function (RED) {
 
 
     node.registeredCallback = function(item){
+      if (item.gatewayReachable !== undefined){
+        node.gatewayReachable = item.gatewayReachable;
+        return;
+      }
       node.status({text: "connected (v. "+item.version+")",fill: "green", shape: "ring" });
-      let retMsg = {"payload": serialise.toGatewayLite(item)};
+      let retMsg = {"payload": serialise.basicGateway(item)};
       node.send([retMsg]);
     };
   }
