@@ -6,26 +6,31 @@ module.exports = function (RED) {
 
   function IkeaGatewayConfigNode(config) {
     RED.nodes.createNode(this, config);
-    var node = this;
+    let node = this;
     node.name = config.name;
     node.psk = config.psk || 0;
     node.identity = config.identity || "unknown";
     node.address = config.address || '192.168.1.100';
-    node.trafri = "";
     node.gatewayReachable = false;
     node.accessories = {};
     node.groups = {};
     node.scenes = {};
+    node.gateway = {};
 
-    var listeners = {};
+    let listeners = {};
+
+    node.eventMessage = {
+      STATUS: "status",
+      CONNECTIVITY:"connectivity"
+    };
 
     node.types = {
       GATEWAY: "gateway",
       ALL: "all",
-      ACCESSORY: "accesory",
+      ACCESSORY: "accessory",
       GROUP : "group",
       SCENE: "scene"
-    }
+    };
 
 
     node.debuglog = function(message, level = "debug"){
@@ -33,6 +38,7 @@ module.exports = function (RED) {
     };
 
     node.on("close", function() {
+      node.killObservers();
       node.tradfri.destroy();
       node.debuglog("COAP connection destroyed");
     });
@@ -47,31 +53,49 @@ module.exports = function (RED) {
           }
         });
         node.tradfri.connect(node.identity, node.psk).then(
-          (connected) => {
+          () => {
             node.tradfri
               .on("ping failed", (count) =>  node.debuglog(`${count} pings failed`))
-              .on("connection lost", () =>{node.killObservators();node.debuglog("connection lost");node.setGatewayState({"gatewayReachable":false});})
-              .on("connection alive", () =>{node.startObservations(()=>{});node.debuglog("connection alive");node.setGatewayState({"gatewayReachable":true});})
-              .on("gateway offline", () => {node.killObservators(); node.debuglog("gateway offline");node.setGatewayState({"gatewayReachable":false});})
-              .on("reconnecting", (att, max) => node.debuglog(`reconnect attempt ${att} of ${max}`))
+              .on("connection lost", _ => {
+                node.setGatewayState({"gatewayReachable":false});
+                node.killObservers();
+                node.debuglog("connection lost");
+              })
+              .on("connection alive",  _ =>{
+                node.startObservers(_ => {});
+                node.debuglog("connection alive");
+                node.setGatewayState({"gatewayReachable":true});
+              })
+              .on("gateway offline", _ => {
+                node.setGatewayState({"gatewayReachable":false});
+                node.killObservers();
+                node.debuglog("gateway offline");
+              })
+              .on("reconnecting", (att, max) => {
+                node.setGatewayState({"gatewayReachable":false});
+                node.killObservers();
+                node.debuglog(`reconnect attempt ${att} of ${max}`)
+              })
               .on("give up", () => node.debuglog("can't connect to gateway, giving up..."))
               .on("device updated",  node.itemUpdatedCallback)
               .on("group updated",   node.itemUpdatedCallback)
               .on("gateway updated", node.itemUpdatedCallback)
-              .on("scene updated",   node.sceneUpdatedCallback)
+              .on("scene updated",   (id, item) => node.itemUpdatedCallback(item))
               .on("rebooting", (reason) => {
                 node.setGatewayState({"gatewayReachable":false});
-                node.status({fill: "red", shape: "ring", text: "rebooting & reconnecting..."});
+                node.killObservers();
                 node.debuglog(`rebooting gateway, reason: ${reason}`);
               })
               .on("error",(error) => {
-                node.debuglog(`Error occured:  ${error}`);
+                node.setGatewayState({"gatewayReachable":false});
+                node.killObservers();
+                node.debuglog(`Captured an Error!!!:  ${error}`);
               });
 
             node.debuglog("connected to '"+node.identity+"'","info");
             node.setGatewayState({"gatewayReachable":true});
 
-            node.startObservations(resolve);
+            node.startObservers(resolve);
           },
           () => {
             node.debuglog("could not connect to gateway '"+node.identity+"'","error");
@@ -82,15 +106,10 @@ module.exports = function (RED) {
       }else{
         resolve();
       }
-
     });
 
 
-
-
-
-
-    node.startObservations = function(done){
+    node.startObservers = function(done){
       node.tradfri.observeGateway().then(
         () => {
           node.debuglog("observing gateway");
@@ -110,35 +129,28 @@ module.exports = function (RED) {
             });
 
         })
-        .catch(err => node.debuglog("Observe error: ",err));
-    }
+        .catch(err => node.debuglog("Observer error: ",err));
+    };
 
-    node.killObservators = function(){
+    node.killObservers = function(){
       node.tradfri.stopObservingDevices();
       node.tradfri.stopObservingGroups();
       node.tradfri.stopObservingNotifications();
       node.tradfri.stopObservingGateway();
-    }
-
+    };
 
     node.itemUpdatedCallback = function(item){
       let type = item instanceof TC.Group?node.types.GROUP:item instanceof TC.Scene?node.types.SCENE:item instanceof TC.GatewayDetails?node.types.GATEWAY:node.types.ACCESSORY;
-      //no list of gateways (yet) because node.tradfri.client doesnt support it
-      if (type !== node.types.GATEWAY) {
-        node.getTypeObjectList(type)[item.instanceId] = item;
+      //no list of gateways (yet) because node.tradfri.client doesnt support it, so there's only one instance: 1
+      if (type === node.types.GATEWAY) {
+        item["instanceId"]=1;
       }
-      node.notifyListeners(type, item)
-    };
-
-    node.sceneUpdatedCallback = function(id, item){
-      return node.itemUpdatedCallback(item);
+      node.getTypeObjectList(type)[item.instanceId] = item;
+      let message = serialise.eventMessage("status",item);
+      node.notifyListeners(type, message)
     };
 
     node.getAccessory = function(deviceId){
-      return node.getRawAccessory(deviceId).lightList[0];
-    };
-
-    node.getRawAccessory = function(deviceId){
       return node.getTypeObjectList(node.types.ACCESSORY)[deviceId];
     };
 
@@ -147,6 +159,9 @@ module.exports = function (RED) {
       switch(type){
         case node.types.GROUP:
           retObject = node.groups;
+          break;
+        case node.types.GATEWAY:
+          retObject = node.gateway;
           break;
         case node.types.SCENE:
           retObject = node.scenes;
@@ -160,8 +175,8 @@ module.exports = function (RED) {
       if (!listeners[type]) {
         listeners[type] = [];
       }
-      let index = _.findIndex(listeners[type], (item) => {return (item.deviceId == deviceId && item.instanceId == instanceId);});
-      if( index == -1){
+      let index = _.findIndex(listeners[type], (item) => {return (item.deviceId === deviceId && item.instanceId === instanceId);});
+      if( index === -1){
         listeners[type].push({"deviceId":deviceId,"instanceId":instanceId,"callback":callback});
       }else{
         re = "RE-";
@@ -172,55 +187,39 @@ module.exports = function (RED) {
     };
 
     node.unregisterListener = function (type, deviceId, instanceId){
-      let position = _.findIndex(listeners[type], (item) => {return (item.deviceId == deviceId && item.instanceId == instanceId);});
+      let position = _.findIndex(listeners[type], (item) => {return (item.deviceId === deviceId && item.instanceId === instanceId);});
       if(position >= 0){
           listeners[type].splice(position,1);
           node.debuglog(`[${type}: ${deviceId}] unregistered event listener`);
         }
     };
 
-    node.notifyListeners = function(type, item){
-      let types =  _.chain(listeners)
-                    .filter((value,key) => {
-                      if (type == node.types.ALL || (type == key )) {
-                        return value;
-                      }
-                    })
-                    .flatMap()
-                    .value();
-      types.forEach((instance) =>{
+    node.getListenersForType =function(type){
+      return _.chain(listeners)
+              .filter((value,key) => {
+                  if (type === node.types.ALL || (type === key )) {
+                    return value;
+                  }
+                })
+              .flatMap()
+              .value();
+    }
+
+    node.notifyListeners = function(type, message){
+      node.getListenersForType(type).forEach((instance) =>{
         // gateway doesnt have instanceId so notify em all
-        if (type ==  node.types.GATEWAY || instance.deviceId == item.instanceId) {
+        if (type ===  node.types.ALL || type ===  node.types.GATEWAY || instance.deviceId === message.content.instanceId) {
           let callback = instance.callback;
-          callback(item);
+          callback(message);
         }
       });
 
     };
 
-    node.getListener = function (type, deviceId, instanceId){
-      return _.chain(listeners[type])
-              .filter((value,key) => {
-                if (value.deviceId === deviceId && value.instanceId === instanceId){
-                  return value;
-                }
-              })
-              .value();
-    };
-
-    node.debug = function(type){
-            let  iets
-      console.log(iets);
-    };
-
     node.setGatewayState = function(stateObject){
       node.gatewayReachable = stateObject.gatewayReachable;
-      for (let type in listeners) {
-        listeners[type].forEach((instance) =>{
-            let callback = instance.callback;
-            callback(stateObject);
-        });
-      }
+      let message = serialise.eventMessage("connectivity",stateObject);
+      node.notifyListeners(node.types.ALL, message);
     };
 
   }
@@ -235,7 +234,7 @@ module.exports = function (RED) {
     if (type = "lights") {
       requestedList = _.chain(configNode.getTypeObjectList(type))
         .filter(function(item) {
-          return item.type == TC.AccessoryTypes.lightbulb;
+          return item.type === TC.AccessoryTypes.lightbulb;
         })
         .sortBy(function(item) {
           return item.name.toLowerCase();

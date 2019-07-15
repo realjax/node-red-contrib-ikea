@@ -9,6 +9,7 @@
   "license": "MIT",
   "keywords": [
     "Ikea",
+    "Ikea home smart",
     "node-red",
     "tradfri",
     "trädfri"
@@ -16,9 +17,9 @@
   "node-red": {
     "nodes": {
       "ikea-smart-devices-gateway-config": "config/gateway-config.js",
-      "ikea-gateway": "devices/gateway/gateway.js",
-      "ikea-light": "devices/light/light.js",
-      "ikea-light-group": "devices/light-group/light-group.js"
+      "ikea-gateway": "nodes/gateway/gateway.js",
+      "ikea-light": "nodes/light/light.js",
+      "ikea-light-group": "nodes/light-group/light-group.js"
     }
   },
   "author": "Jacco Huysmans",

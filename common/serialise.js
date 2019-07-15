@@ -23,7 +23,6 @@ module.exports = {
     });
   },
   lightColorTempComparator: function (obj1, obj2) {
-
     return (obj1.id == obj2.id) &&
     (obj1.name == obj2.name) &&
     (obj1.model == obj2.model) &&
@@ -80,6 +79,13 @@ module.exports = {
       dstEndHour: gateway.dstEndHour,
       dstEndMinute: gateway.dstEndMinute,
       dstTimeOffset: gateway.dstTimeOffset
+    });
+  },
+  eventMessage: function (type,message) {
+    return Object.assign({}, {
+      type: type,
+      eventTime: new Date().getTime(),
+      content: message
     });
   }
 }

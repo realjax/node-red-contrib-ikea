@@ -2,11 +2,12 @@
 
 This module contains the following nodes to provide integration of the Ikea smart home devices into node-red.
 
-The following devices are currently supported:
+The following nodes are currently implemented:
 
 * Gateway
 * Lights
-* Groups of lights
+* Groups
+* scenes
 
 # Installation
 To install this module use Node-Red GUI installer or console command:
