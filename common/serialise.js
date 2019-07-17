@@ -50,7 +50,7 @@ module.exports = {
   lightOperation: function (item) {
     return Object.assign({}, {
       onOff: item.onOff,
-      dimmer: item.dimmer,
+      dimmer: item.brightness,
       transitionTime: item.transitionTime,
       colorTemperature: item.colorTemperature,
       color: item.color,

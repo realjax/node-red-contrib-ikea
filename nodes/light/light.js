@@ -62,32 +62,19 @@ module.exports = function (RED) {
     node.doAction = function(action){
       node.retMsg = null;
       let runAction = {
-        "STATUS": function () {
-          node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}};
-        },
-        "TOGGLE": function () {
-          node.light.toggle().catch((err) => console.log("error toggling ", err));
-        },
-        "ON": function () {
-          node.light.turnOn().then(_ => console.log("was turned on")).catch((err) => console.log("err ", err));
-        },
-        "OFF": function () {
-          node.light.turnOff().then(_ => console.log("was turned off")).catch((err) => console.log("err ", err));
-        },
-        "SETCOLORTEMPERATURE": function () {
-          node.light.setColorTemperature(60).then(_ => console.log("colortemp set to 60")).catch((err) => console.log("err ", err));
-        },
-        "default": function () {
-          // do nothing
-        }
+        "STATUS" : _ => node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}} ,
+        "TOGGLE" : _ => node.light.toggle().catch((err) => console.log("error toggling ", err)),
+        "ON" : _ => node.light.turnOn().then(_ => console.log("was turned on")).catch((err) => console.log("err ", err)),
+        "OFF" : _ => node.light.turnOff().then(_ => console.log("was turned off")).catch((err) => console.log("err ", err)),
+        "SETCOLORTEMPERATURE": _ => node.light.setColorTemperature(60).then(_ => console.log("colortemp set to 60")).catch((err) => console.log("err ", err)),
+        "default": _ => {/* do nothing */}
       };
-      return runAction[action]!==undefined?runAction[action]():runAction["default"]();
+      return (runAction[action] || runAction['default'])();
     };
 
     node.aliveCheckLoop = function(){
       let secondsInterval = 20000 + ((Math.floor(Math.random() * 20) + 1 ) * 1000); // random between 20 and 40 seconds.
       node.aliveCheckinterval = setInterval(() => {
-
         let light = node.server.getAccessory(config.deviceId).lightList[0];
         if (node.lightReachable) {
           node.debuglog("in the aliveCheckLoop every "+ secondsInterval/1000 + " seconds");
@@ -100,13 +87,11 @@ module.exports = function (RED) {
     };
 
     node.registeredCallback = function(message) {
-
-      let eventMessage = message;
       let actions = {
-        "status": function() {
-          let lightObject = serialise.lightFromAccessory(eventMessage.content);
+        "status": function(message) {
+          let lightObject = serialise.lightFromAccessory(message.content);
           if (!_.isEqualWith(node.lastMessageReceived, lightObject, serialise.lightColorTempComparator)) {
-            let stateColor = !eventMessage.content.alive ? "red" : eventMessage.content.lightList[0].onOff ? "green" : "grey";
+            let stateColor = !message.content.alive ? "red" : message.content.lightList[0].onOff ? "green" : "grey";
             node.status({
               fill: stateColor,
               shape: 'ring',
@@ -114,18 +99,24 @@ module.exports = function (RED) {
             });
             node.send([{"payload": lightObject}]);
           }
-          node.lightReachable = eventMessage.content.alive;
+          node.lightReachable = message.content.alive;
           node.lastMessageReceived = lightObject;
         },
-        "connectivity": function(){
+        "connectivity": function(message){
           if (config.detectAlive) {
-            !eventMessage.content.gatewayReachable ? clearInterval(node.aliveCheckinterval) : node.aliveCheckLoop();
+             if (!message.content.gatewayReachable) {
+               clearInterval(node.aliveCheckinterval)
+             }else {
+               node.lastMessageReceived = {};
+               node.lightReachable = true;
+               node.aliveCheckLoop();
+             }
           }
-          let statusObject = eventMessage.content.gatewayReachable?{text: "Connected to gateway",fill: "green", shape: "ring"}:{text: "Disconnected from gateway",fill: "red", shape: "ring" };
+          let statusObject = message.content.gatewayReachable?{text: "Connected to gateway",fill: "green", shape: "ring"}:{text: "Disconnected from gateway",fill: "red", shape: "ring" };
           node.status(statusObject);
         }
       };
-      actions[eventMessage.type]();
+      actions[message.type](message);
 
     };
 

@@ -15,7 +15,7 @@ module.exports = function (RED) {
     node.accessories = {};
     node.groups = {};
     node.scenes = {};
-    node.gateway = {};
+    node.gateways = {};
 
     let listeners = {};
 
@@ -101,7 +101,7 @@ module.exports = function (RED) {
             node.debuglog("could not connect to gateway '"+node.identity+"'","error");
             reject();
           }).catch(err => {
-          console.log("somerror:",err)
+          node.debuglog(err.message,"error");
         });
       }else{
         resolve();
@@ -155,19 +155,13 @@ module.exports = function (RED) {
     };
 
     node.getTypeObjectList = function(type){
-      let retObject = node.accessories;
-      switch(type){
-        case node.types.GROUP:
-          retObject = node.groups;
-          break;
-        case node.types.GATEWAY:
-          retObject = node.gateway;
-          break;
-        case node.types.SCENE:
-          retObject = node.scenes;
-          break;
-      }
-      return retObject;
+      let types = {
+        "group"   : _ => node.groups,
+        "scene"   : _ => node.scenes,
+        "gateway" : _ => node.gateways,
+        "default" : _ => node.accessories
+      };
+      return (types[type] || types['default'])();
     };
 
     node.registerListener = function (type, deviceId, instanceId, callback){

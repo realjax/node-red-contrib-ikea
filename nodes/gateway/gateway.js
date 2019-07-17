@@ -20,7 +20,7 @@ module.exports = function (RED) {
     ).catch((err) => console.log("gateway error: ",err));
 
     node.onConnected = function(){
-      node.status({fill: "green", shape: "ring", text: "connected (v. "+node.server.gateway[1].version+")"});
+      node.status({fill: "green", shape: "ring", text: "connected (v. "+node.server.gateways[1].version+")"});
       node.gatewayReachable = node.server.gatewayReachable;
       node.server.registerListener(node.server.types.GATEWAY,node.type,config.id, node.registeredCallback);
 
@@ -29,9 +29,8 @@ module.exports = function (RED) {
         var retArray = [];
         var  objectList = {};
 
-        if (msg.hasOwnProperty("payload") && node.gatewayReachable) {
-          let cmd = msg.payload.toUpperCase();
-          node.doAction(cmd);
+        if (msg.hasOwnProperty("payload") && msg.payload.hasOwnProperty("cmd") && node.gatewayReachable) {
+          node.doAction(msg);
           if (node.retMsg !== null) node.send([node.retMsg]);
         } // do nothing unless we have a payload and gateway is reachable
 
@@ -44,75 +43,86 @@ module.exports = function (RED) {
 
     };
 
-    node.doAction = function(action){
+    node.doAction = function(msg){
+      let action = msg.payload.cmd.toUpperCase();
       node.objectList, node.retMsg = null;
       let retArray = [];
       let runAction = {
         "REBOOT": function () {
           node.server.tradfri.rebootGateway().then(()=>node.debuglog("reboot has started"),()=>node.debuglog("reboot failed to start")).catch(err => console.log(err));
         },
-        "STATUS": function(){
-          node.retMsg = {"payload":{"status":serialise.basicGateway(node.server.gateway[1])}};
+        "GETSTATUS": function(){
+          node.retMsg = {"payload":{"status":serialise.basicGateway(node.server.gateways[1])}};
         },
-        "DEVICES": function () {
+        "GETDEVICES": function () {
           node.objectList = node.server.getTypeObjectList(node.server.types.ACCESSORY);
           for (let k in node.objectList) {
-            retArray.push({id: parseInt(k),name: node.objectList[k].name,type: node.objectList[k].type});
+            retArray.push({deviceId: parseInt(k),name: node.objectList[k].name,type: node.objectList[k].type});
           }
           node.retMsg = {"payload":{"devices":retArray}};
         },
-        "LIGHTS": function () {
+        "GETLIGHTS": function () {
           node.objectList = node.server.getTypeObjectList(node.server.types.ACCESSORY);
           for (let k in node.objectList) {
             if (node.objectList[k].type == 2) {
-              retArray.push({id: parseInt(k),name: node.objectList[k].name,type: node.objectList[k].type});
+              retArray.push({deviceId: parseInt(k),name: node.objectList[k].name,type: node.objectList[k].type});
             }
             node.retMsg = {"payload":{"lights":retArray}};
           }
         },
-        "GROUPS": function () {
+        "GETGROUPS": function () {
           node.objectList = node.server.getTypeObjectList(node.server.types.GROUP);
           for (let k in node.objectList) {
-            retArray.push({id: parseInt(k),name: node.objectList[k].name, devices:node.objectList[k].deviceIDs});
+            retArray.push({groupId: parseInt(k),name: node.objectList[k].name, devices:node.objectList[k].deviceIDs});
           }
           node.retMsg = {"payload":{"groups":retArray}};
         },
-        "SCENES": function () {
+        "GETSCENES": function () {
           node.objectList = node.server.getTypeObjectList(node.server.types.SCENE);
           for (let k in node.objectList) {
             if (!node.objectList[k].isPredefined) {
-              retArray.push({id: parseInt(k),name: node.objectList[k].name, isActive: node.objectList[k].isActive, lightSetting: node.objectList[k].lightSettings});
+              retArray.push({sceneId: parseInt(k),name: node.objectList[k].name, isActive: node.objectList[k].isActive, lightSetting: node.objectList[k].lightSettings});
             }
             node.retMsg = {"payload":{"scenes":retArray}};
+          }
+        },
+        "SETLIGHT": function (payload) {
+          if (payload.hasOwnProperty("settings") && typeof payload.settings === 'object' && payload.hasOwnProperty("deviceId")) {
+            try {
+              let lightOperation = serialise.lightOperation(payload.settings);
+              node.server.tradfri.operateLight(node.server.getAccessory(payload.deviceId),lightOperation);
+            } catch (err){
+              node.debuglog("Could not set the light. Please make sure the settings and the deviceId are valid. Error: "+err.message,"warn");
+            }
           }
         },
         "default": function () {
           // do nothing
         }
       };
-      return runAction[action]!==undefined?runAction[action]():runAction["default"]();
+      return (runAction[action] || runAction['default'])(msg.payload);
+      //return runAction[action]!==undefined?runAction[action](msg.payload):runAction["default"]();
     };
 
-    node.debuglog = function(message){
-      RED.log.debug(this.constructor.name + " '" + node.name +"'" +" : "+message);
+    node.debuglog = function(message, level = "debug"){
+      eval('RED.log.'+level+'(this.constructor.name + " \'" + node.name +"\'" +" : "+message)');
     };
 
 
     node.registeredCallback = function(message){
-      let eventMessage = message;
       let actions = {
-        "status": function() {
+        "status": function(message) {
           node.status({text: "connected (v. "+node.server.gateway[1].version+")",fill: "green", shape: "ring" });
-          let retMsg = {"payload": {"status": serialise.basicGateway(eventMessage.content)}};
+          let retMsg = {"payload": {"status": serialise.basicGateway(message.content)}};
           node.send([retMsg]);
         },
-        "connectivity": function(){
+        "connectivity": function(message){
           node.gatewayReachable = message.content.gatewayReachable;
           let statusObject = node.gatewayReachable?{text: "connected (v. "+node.server.gateway[1].version+")",fill: "green", shape: "ring"}:{text: "disconnected",fill: "red", shape: "ring" };
           node.status(statusObject);
         }
       };
-      actions[eventMessage.type]();
+      actions[message.type](message);
     };
   }
   RED.nodes.registerType("ikea-gateway", IkeaGatewayNode);
