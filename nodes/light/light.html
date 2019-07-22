@@ -13,7 +13,7 @@
       deviceName:    {value: ""},
       detectAlive:   {value: false}
     },
-    align: 'right',
+    align: 'left',
     inputs:1,
     outputs:1,
     icon: 'light.png',
@@ -27,21 +27,21 @@
     oneditprepare: function() {
       let lookupButton = $('#node-device-lookup');
       let inputLookup = $('#node-input-deviceName');
+      let detectAliveCheckbox = $('#node-input-detectAlive');
+      let detectAliveLabel = $('#label-detectAlive');
 
       lookupButton.click(function() {
         lookupInputWas = inputLookup.val();
         inputLookup.val('please wait..');
         lookupButton.addClass('disabled');
-       // inputLookup.prop('readonly', true);
         let configNodeId = $('#node-input-gateway').find(":selected").val();
         if (configNodeId == null || configNodeId === '_ADD_') { return; }
-        $.getJSON('ikea-gateway-items',{"type":"lights","nodeId":configNodeId},function(data) {
+        $.getJSON('ikea-gateway-items',{"type":"light","nodeId":configNodeId},function(data) {
           lookupButton.removeClass('disabled');
           inputLookup.val(lookupInputWas);
-         // inputLookup.prop('readonly', false);
           var devicesNames = [];
           $.each(JSON.parse(data), function(i, device) {
-            devices[device.name]=device.id;
+            devices[device.name]={deviceId:device.id,spectrum:device.spectrum};
             devicesNames.push(device.name);
           });
           inputLookup.autocomplete({
@@ -49,6 +49,17 @@
             minLength:0,
             close: function( event, ui ) {
               inputLookup.autocomplete( "destroy" );
+            },
+            select: function( event, ui ) {
+              let spectrum = devices[ui.item.value].spectrum;
+              if(!spectrum){
+                detectAliveCheckbox.prop( "checked", false );
+                detectAliveCheckbox.prop('disabled', true);
+                detectAliveLabel.addClass('disabled');
+              }else{
+                detectAliveCheckbox.prop('disabled', false);
+                detectAliveLabel.removeClass('disabled');
+              }
             }
           }).autocomplete("search","");
         });
@@ -56,7 +67,7 @@
     },
     oneditsave: function() {
       let name = $('#node-input-deviceName').val()
-      this.deviceId = devices[name];
+      this.deviceId = devices[name].deviceId;
     }
   });
 </script>
@@ -78,7 +89,7 @@
      <div class="form-row">
         <label>&nbsp;</label>
         <input type="checkbox" id="node-input-detectAlive" style="display: inline-block; width: auto; vertical-align: top;">
-        <label for="node-input-detectAlive" style="width: 70%;" >Detect light is  alive?</label>
+        <label id="label-detectAlive" for="node-input-detectAlive" style="width: 70%;" >Detect light is  alive?</label>
     </div>
 </script>
 

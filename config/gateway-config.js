@@ -145,14 +145,36 @@ module.exports = function (RED) {
       if (type === node.types.GATEWAY) {
         item["instanceId"]=1;
       }
+
       node.getTypeObjectList(type)[item.instanceId] = item;
       let message = serialise.eventMessage("status",item);
       node.notifyListeners(type, message)
+      // if type is an accessory, also notify any groups it may belong to.
+      if (type === node.types.ACCESSORY && item.type === TC.AccessoryTypes.lightbulb) {
+        node.getGroupForAccessory(item.instanceId).forEach( group => {
+            console.log("item.alive ",item.alive)
+            node.groups[group.instanceId].alive = item.alive;
+            node.groups[group.instanceId].onOff = item.lightList[0].onOff;
+            let groupmessage = serialise.eventMessage("status", node.groups[group.instanceId]);
+            node.notifyListeners(node.types.GROUP, groupmessage);
+          }
+        )
+      }
     };
 
     node.getAccessory = function(deviceId){
       return node.getTypeObjectList(node.types.ACCESSORY)[deviceId];
     };
+
+    node.getGroup = function(groupId){
+      return node.getTypeObjectList(node.types.GROUP)[groupId];
+    };
+
+    node.getGroupForAccessory = function(deviceId) {
+      return _.chain(node.groups)
+        .filter(group => group.deviceIDs.includes(deviceId))
+        .value()
+    }
 
     node.getTypeObjectList = function(type){
       let types = {
@@ -223,23 +245,45 @@ module.exports = function (RED) {
     let nodeId = req.query.nodeId;
     let type = req.query.type;
     let configNode = RED.nodes.getNode(nodeId);
-    let requestedList = configNode.getTypeObjectList(type);
+    let getSpectrumLightsInGroup = function(group){
+      return _.chain(group.deviceIDs)
+        .filter(id => configNode.getAccessory(id).type === TC.AccessoryTypes.lightbulb &&
+                      configNode.getAccessory(id).lightList[0].spectrum != "none")
+        .value()
+    };
+    let getDeviceObject = function(item) {
+      let objects = {
+        "light": function (item) {
+          return {name: item.name, id: item.instanceId, spectrum: item.lightList[0].spectrum != "none"}
+        },
+        "group": function (item) {
+          return {name: item.name, id: item.instanceId, spectrumLightId:getSpectrumLightsInGroup(item)[0]}
+        },
+        "default": function (item) {
+          return {name: item.name, id: item.instanceId}
+        },
+      };
+      return (objects[req.query.type] || objects['default'])(item);
+    };
 
-    if (type = "lights") {
-      requestedList = _.chain(configNode.getTypeObjectList(type))
+    let requestedList = _.chain(configNode.getTypeObjectList(type))
         .filter(function(item) {
-          return item.type === TC.AccessoryTypes.lightbulb;
+          if (type === "light") {
+            return item.type === TC.AccessoryTypes.lightbulb;
+          }else{
+            return true;
+          }
         })
         .sortBy(function(item) {
           return item.name.toLowerCase();
         })
         .value();
-    }
+
 
     let getDevices = async function(res) {
       let ret = [];
       for (let k in requestedList) {
-        ret.push({name: requestedList[k].name, id:requestedList[k].instanceId});
+        ret.push(getDeviceObject(requestedList[k]));
       }
       res.json(JSON.stringify(ret));
     };
@@ -252,7 +296,11 @@ module.exports = function (RED) {
     let discover = async function(res) {
       try {
         let discovered = await TC.discoverGateway();
-        return res.json([{"name": discovered.host}]);
+        let ipHostArray = [{"iphost": discovered.host}];
+        if (discovered.addresses !== undefined && discovered.addresses.length){
+          ipHostArray.unshift({"iphost": discovered.addresses[0]});
+        }
+        return res.json(ipHostArray);
       } catch (e){
         return res.json([{"name": "Nothing found, please enter manually"}]);
       }

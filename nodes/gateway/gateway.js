@@ -112,13 +112,13 @@ module.exports = function (RED) {
     node.registeredCallback = function(message){
       let actions = {
         "status": function(message) {
-          node.status({text: "connected (v. "+node.server.gateway[1].version+")",fill: "green", shape: "ring" });
+          node.status({text: "connected (v. "+node.server.gateways[1].version+")",fill: "green", shape: "ring" });
           let retMsg = {"payload": {"status": serialise.basicGateway(message.content)}};
           node.send([retMsg]);
         },
         "connectivity": function(message){
           node.gatewayReachable = message.content.gatewayReachable;
-          let statusObject = node.gatewayReachable?{text: "connected (v. "+node.server.gateway[1].version+")",fill: "green", shape: "ring"}:{text: "disconnected",fill: "red", shape: "ring" };
+          let statusObject = node.gatewayReachable?{text: "connected (v. "+node.server.gateways[1].version+")",fill: "green", shape: "ring"}:{text: "disconnected",fill: "red", shape: "ring" };
           node.status(statusObject);
         }
       };

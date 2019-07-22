@@ -81,6 +81,18 @@ module.exports = {
       dstTimeOffset: gateway.dstTimeOffset
     });
   },
+  basicGroup: function (group) {
+    return Object.assign({}, {
+      id: group.instanceId,
+      name: group.name,
+      onOff: group.onOff,
+      dimmer: group.dimmer,
+      deviceIDs: group.deviceIDs,
+      sceneId: group.sceneId,
+      groupType: group.groupType,
+      alive: group.alive
+    });
+  },
   eventMessage: function (type,message) {
     return Object.assign({}, {
       type: type,

@@ -23,6 +23,17 @@
       let secCodeButton = $("#node-config-test-seccode");
       let pskrow = $("#psk-row");
       let identityrow = $("#identity-row");
+      let showWarning = function(message){
+        $('#warn-triangle').removeClass('hidden');
+        $('#config-message').text(message);
+      };
+
+      let removeWarning = function(){
+        $('#warn-triangle').addClass('hidden');
+        $('#config-message').text("");
+      };
+
+      removeWarning();
 
       if ($.trim(psk.val()) !== ""){
         $('#show-identity').text(indentity.val());
@@ -35,6 +46,8 @@
       }
       sec.keyup(checkinputs);
 
+
+
       adressButton.click(function() {
         inputWas = inputAddress.val();
         inputAddress.val('please wait..');
@@ -45,8 +58,8 @@
           inputAddress.val(inputWas);
           inputAddress.prop('readonly', false);
           var gateways = [];
-          $.each(data, function(i, port) {
-            gateways.push(port.name);
+          $.each(data, function(i, gateway) {
+            gateways.push(gateway.iphost);
           });
          inputAddress.autocomplete({
             source:gateways,
@@ -72,12 +85,12 @@
           inputSecCode.prop('readonly', false);
           inputAddress.prop('readonly', false);
           if (data.error !== undefined){
-            $('#config-message').text(data.error);
+            showWarning(data.error)
           }
           if (data.psk!== undefined && data.identity !== undefined){
             pskrow.removeClass('hidden');
             identityrow.removeClass('hidden');
-            $('#config-message').text("Authenticated successfully.");
+            showWarning("Authenticated successfully.")
             $('#show-identity').text(data.identity);
             $('#show-psk').text(data.psk);
             $('#node-config-input-identity').val(data.identity);
@@ -105,7 +118,7 @@
         <a id="node-config-test-seccode" class="btn hidden"><i id="node-config-test-seccode-icon" class="fa fa-key"></i></a>
     </div>
     <div class="form-row">
-        <i class="fa fa-exclamation-triangle"></i>&nbsp;&nbsp;<span id="config-message" class="debug-message-type-string"></span>
+        <i id="warn-triangle" class="fa fa-exclamation-triangle"></i>&nbsp;&nbsp;<span id="config-message" class="debug-message-type-string"></span>
     </div>
     <div class="form-row" id="identity-row" class="hidden">
         <label for="node-input-identity"><i class="fa fa-tag"></i> Identity:</label>
