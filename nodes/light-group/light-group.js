@@ -51,8 +51,8 @@ module.exports = function (RED) {
 
         if (node.groupReachable && node.gatewayReachable) {
           node.doAction(msg);
-        }else if (_.get(msg, 'payload.cmd') === "GETSTATUS"){
-          node.doAction(msg);
+        }else if (_.get(msg, 'payload.cmd').toUpperCase() === "GETSTATUS" || _.get(msg, 'payload.cmd').toUpperCase() === "TEST") {
+            node.doAction(msg);
         }
 
         if (node.retMsg !== null) node.send([node.retMsg]);
@@ -70,14 +70,30 @@ module.exports = function (RED) {
       node.retMsg = null;
       let runAction = {
         "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.basicGroup(node.server.getGroup(config.groupId))}},
-        "TOGGLE" : _ => node.group.toggle().catch((err) => console.log("error toggling ", err)),
-        "ON" : _ => node.group.turnOn().then(_ => console.log("was turned on")).catch((err) => console.log("err ", err)),
-        "OFF" : _ => node.group.turnOff().then(_ => console.log("was turned off")).catch((err) => console.log("err ", err)),
-        "SETCOLORTEMPERATURE": _ => node.group.setColorTemperature(60).then(_ => console.log("colortemp set to 60")).catch((err) => console.log("err ", err)),
+        "TOGGLE" : _ => node.customToggle(),
+        "TURNON" : _ => cturnOn().catch((err) => console.log("err ", err)),
+        "TURNOFF" : _ => node.group.turnOff().catch((err) => console.log("err ", err)),
+        "SETPROPERTIES": function (payload) {
+          if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object') {
+            try {
+              let groupOperation = serialise.grouopOperation(payload.properties);
+              node.server.tradfri.operateGrouo(node.server.getGroup(config.groupId),groupOperation);
+            } catch (err){
+              node.debuglog("Could not apply the group properties. Please make sure the properties are valid. Error: "+err.message,"warn");
+            }
+          }
+        },
+
+       // "TEST" : _ => console.log("debounced: ",node.server.getDebouncedGroupMessage(node.server.groups[config.groupId])),
         "default": _ => {/* do nothing */}
       };
-      return (runAction[action] || runAction['default'])();
+      return (runAction[action] || runAction['default'])(msg.payload);
     };
+
+    node.customToggle = function(){
+      let currentState = serialise.basicGroup(node.server.getGroup(config.groupId)).onOff;
+      node.group.toggle(!currentState).catch((err) => console.log("error toggling ", err))
+    }
 
     node.aliveCheckLoop = function(){
       let secondsInterval = 20000 + ((Math.floor(Math.random() * 20) + 1 ) * 1000); // random between 20 and 40 seconds.
@@ -96,8 +112,6 @@ module.exports = function (RED) {
       let actions = {
         "status": function(message) {
           let groupObject = serialise.basicGroup(message.content);
-
-          console.log(message.content.alive)
 
           //if (!_.isEqualWith(node.lastMessageReceived, groupObject, serialise.lightColorTempComparator)) {
             let stateColor = message.content.alive != undefined && !message.content.alive ? "red" : message.content.onOff ? "green" : "grey";

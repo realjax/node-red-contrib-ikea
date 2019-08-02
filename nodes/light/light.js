@@ -67,12 +67,21 @@ module.exports = function (RED) {
       let runAction = {
         "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}} ,
         "TOGGLE" : _ => node.light.toggle().catch((err) => console.log("error toggling ", err)),
-        "TURNON" : _ => node.light.turnOn().then(_ => console.log("was turned on")).catch((err) => console.log("err ", err)),
-        "TURNOFF" : _ => node.light.turnOff().then(_ => console.log("was turned off")).catch((err) => console.log("err ", err)),
-        "SETCOLORTEMPERATURE": _ => node.light.setColorTemperature(60).then(_ => console.log("colortemp set to 60")).catch((err) => console.log("err ", err)),
+        "TURNON" : _ => node.light.turnOn().catch((err) => console.log("err ", err)),
+        "TURNOFF" : _ => node.light.turnOff().catch((err) => console.log("err ", err)),
+        "SETPROPERTIES": (payload) => {
+          if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object') {
+            try {
+              let lightOperation = serialise.lightOperation(payload.properties);
+              node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),groupOperation);
+            } catch (err){
+              node.debuglog("Could not apply the light properties. Please make sure the properties are valid. Error: "+err.message,"warn");
+            }
+          }
+        },
         "default": _ => {/* do nothing */}
-      };
-      return (runAction[action] || runAction['default'])();
+      };;
+      return (runAction[action] || runAction['default'])(msg.payload);
     };
 
     node.aliveCheckLoop = function(){

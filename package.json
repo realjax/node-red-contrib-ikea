@@ -1,5 +1,5 @@
 {
-  "name": "node-red-contrib-ikea-smart-home",
+  "name": "node-red-contrib-ikea-home-smart",
   "version": "1.0.0",
   "description": "Ikea Smart Home Automation for NodeRed",
   "repository": {

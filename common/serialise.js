@@ -89,8 +89,15 @@ module.exports = {
       dimmer: group.dimmer,
       deviceIDs: group.deviceIDs,
       sceneId: group.sceneId,
-      groupType: group.groupType,
       alive: group.alive
+    });
+  },
+  grouopOperation: function (item) {
+    return Object.assign({}, {
+      onOff: item.onOff,
+      dimmer: item.brightness,
+      transitionTime: item.transitionTime,
+      sceneId: item.sceneId
     });
   },
   eventMessage: function (type,message) {

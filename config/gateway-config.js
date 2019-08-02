@@ -16,6 +16,7 @@ module.exports = function (RED) {
     node.groups = {};
     node.scenes = {};
     node.gateways = {};
+    node.groupNotifiers = [];
 
     let listeners = {};
 
@@ -31,7 +32,6 @@ module.exports = function (RED) {
       GROUP : "group",
       SCENE: "scene"
     };
-
 
     node.debuglog = function(message, level = "debug"){
       eval('RED.log.'+level+'(this.constructor.name + " \'" + node.name +"\'" +" : "+message)');
@@ -151,16 +151,51 @@ module.exports = function (RED) {
       node.notifyListeners(type, message)
       // if type is an accessory, also notify any groups it may belong to.
       if (type === node.types.ACCESSORY && item.type === TC.AccessoryTypes.lightbulb) {
+
         node.getGroupForAccessory(item.instanceId).forEach( group => {
-            console.log("item.alive ",item.alive)
-            node.groups[group.instanceId].alive = item.alive;
-            node.groups[group.instanceId].onOff = item.lightList[0].onOff;
-            let groupmessage = serialise.eventMessage("status", node.groups[group.instanceId]);
-            node.notifyListeners(node.types.GROUP, groupmessage);
+
+            // always update & send alive status if light is a spectrum light
+            if (item.lightList[0].spectrum != "none") {
+              node.groups[group.instanceId].alive = item.alive;
+              let alivemessage = serialise.eventMessage("status", node.groups[group.instanceId]);
+              node.notifyListeners(node.types.GROUP, alivemessage);
+            }
+
+            // schedule group updates until no more lights in a group pass here
+            if (node.groupNotifiers[group.instanceId] !== undefined) {
+              // if there's already a timer set for this group, cancel it
+              clearTimeout(node.groupNotifiers[group.instanceId]);
+            }
+            // set a timer to update the group in 500 msecs. Will be replaced when a new light passes here that belongs to the same group
+            node.groupNotifiers[group.instanceId] = setTimeout(
+              () => {
+                let message = node.getDebouncedGroupMessage(group);
+                if (message !== null) {
+                  node.notifyListeners(node.types.GROUP, message);
+                }
+              },500
+            );
           }
         )
       }
+
     };
+
+    node.getDebouncedGroupMessage = (group) => { // create an event message when certain settings for all lights in a group are the same, else return null.
+      let allLightsInGroup =  _.chain(group.deviceIDs)
+                            .filter(id => node.getAccessory(id).type === TC.AccessoryTypes.lightbulb)
+                            .map((id)=>serialise.lightFromAccessory(node.getAccessory(id)))
+                            .value();
+      let allOnOffSame  = _.every(allLightsInGroup, (item) => allLightsInGroup[0].on === item.on);
+      let allDimmerSame = _.every(allLightsInGroup, (item) => allLightsInGroup[0].brightness === item.brightness);
+      if (allOnOffSame){
+        node.groups[group.instanceId].onOff = allLightsInGroup[0].on;
+      }
+      if (allDimmerSame){
+        node.groups[group.instanceId].dimmer = allLightsInGroup[0].brightness;
+      }
+      return allOnOffSame || allDimmerSame?serialise.eventMessage("status", node.groups[group.instanceId]):null;
+    }
 
     node.getAccessory = function(deviceId){
       return node.getTypeObjectList(node.types.ACCESSORY)[deviceId];

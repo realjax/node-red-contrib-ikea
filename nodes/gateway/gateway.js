@@ -86,13 +86,23 @@ module.exports = function (RED) {
             node.retMsg = {"payload":{"scenes":retArray}};
           }
         },
-        "SETLIGHT": function (payload) {
-          if (payload.hasOwnProperty("settings") && typeof payload.settings === 'object' && payload.hasOwnProperty("deviceId")) {
+        "SETLIGHTPROPERTIES": (payload) => {
+          if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object' && payload.hasOwnProperty("deviceId")) {
             try {
-              let lightOperation = serialise.lightOperation(payload.settings);
+              let lightOperation = serialise.lightOperation(payload.properties);
               node.server.tradfri.operateLight(node.server.getAccessory(payload.deviceId),lightOperation);
             } catch (err){
-              node.debuglog("Could not set the light. Please make sure the settings and the deviceId are valid. Error: "+err.message,"warn");
+              node.debuglog("Could not set the light properties. Please make sure the properties and the deviceId are valid. Error: "+err.message,"warn");
+            }
+          }
+        },
+        "SETGROUPPROPERTIES": (payload) => {
+          if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object' && payload.hasOwnProperty("groupId")) {
+            try {
+              let groupOperation = serialise.lightOperation(payload.properties);
+              node.server.tradfri.operateGroup(node.server.getGroup(payload.groupId),groupOperation);
+            } catch (err){
+              node.debuglog("Could not set the group properties. Please make sure the properties and the groupId are valid. Error: "+err.message,"warn");
             }
           }
         },
@@ -101,7 +111,6 @@ module.exports = function (RED) {
         }
       };
       return (runAction[action] || runAction['default'])(msg.payload);
-      //return runAction[action]!==undefined?runAction[action](msg.payload):runAction["default"]();
     };
 
     node.debuglog = function(message, level = "debug"){
