@@ -47,7 +47,7 @@ module.exports = function (RED) {
 
         if (node.lightReachable && node.gatewayReachable) {
           node.doAction(msg);
-        }else if (_.get(msg, 'payload.cmd') === "GETSTATUS"){
+        }else if (_.get(msg, 'payload.cmd').toUpperCase() === "GETSTATUS"){
           node.doAction(msg);
         }
 
@@ -79,7 +79,7 @@ module.exports = function (RED) {
             }
           }
         },
-        "default": _ => {/* do nothing */}
+        "default": _ => {console.log("heel vreemd")}
       };;
       return (runAction[action] || runAction['default'])(msg.payload);
     };

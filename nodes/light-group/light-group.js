@@ -48,7 +48,8 @@ module.exports = function (RED) {
         }
 
         node.retMsg = null;
-
+        console.log("node.groupReachable ",node.groupReachable)
+        console.log("node.gatewayReachable ",node.gatewayReachable)
         if (node.groupReachable && node.gatewayReachable) {
           node.doAction(msg);
         }else if (_.get(msg, 'payload.cmd').toUpperCase() === "GETSTATUS" || _.get(msg, 'payload.cmd').toUpperCase() === "TEST") {
@@ -71,7 +72,7 @@ module.exports = function (RED) {
       let runAction = {
         "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.basicGroup(node.server.getGroup(config.groupId))}},
         "TOGGLE" : _ => node.customToggle(),
-        "TURNON" : _ => cturnOn().catch((err) => console.log("err ", err)),
+        "TURNON" : _ => node.group.turnOn().catch((err) => console.log("err ", err)),
         "TURNOFF" : _ => node.group.turnOff().catch((err) => console.log("err ", err)),
         "SETPROPERTIES": function (payload) {
           if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object') {
@@ -92,6 +93,7 @@ module.exports = function (RED) {
 
     node.customToggle = function(){
       let currentState = serialise.basicGroup(node.server.getGroup(config.groupId)).onOff;
+      console.log("toggle ",!currentState)
       node.group.toggle(!currentState).catch((err) => console.log("error toggling ", err))
     }
 
@@ -113,7 +115,7 @@ module.exports = function (RED) {
         "status": function(message) {
           let groupObject = serialise.basicGroup(message.content);
 
-          //if (!_.isEqualWith(node.lastMessageReceived, groupObject, serialise.lightColorTempComparator)) {
+          if (!_.isEqualWith(node.lastMessageReceived, groupObject)) {
             let stateColor = message.content.alive != undefined && !message.content.alive ? "red" : message.content.onOff ? "green" : "grey";
             node.status({
               fill: stateColor,
@@ -121,8 +123,8 @@ module.exports = function (RED) {
               text: 'Group is ' + (stateColor === "red" ? "not powered" : stateColor === "green" ? "on" : "off")
             });
             node.send([{"payload": groupObject}]);
-          //}
-          node.groupReachable = message.content.alive;
+          }
+          node.groupReachable = message.content.alive ;
           node.lastMessageReceived = groupObject;
         },
         "connectivity": function(message){

@@ -155,11 +155,11 @@ module.exports = function (RED) {
         node.getGroupForAccessory(item.instanceId).forEach( group => {
 
             // always update & send alive status if light is a spectrum light
-            if (item.lightList[0].spectrum != "none") {
+            //if (item.lightList[0].spectrum != "none") {
               node.groups[group.instanceId].alive = item.alive;
               let alivemessage = serialise.eventMessage("status", node.groups[group.instanceId]);
               node.notifyListeners(node.types.GROUP, alivemessage);
-            }
+            //}
 
             // schedule group updates until no more lights in a group pass here
             if (node.groupNotifiers[group.instanceId] !== undefined) {
