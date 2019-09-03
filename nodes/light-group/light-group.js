@@ -28,7 +28,7 @@ module.exports = function (RED) {
     node.server.getConnection.then(
       _ => node.onConnected(),
       _ => node.status({fill: 'red', shape: 'ring', text: 'could not connect'})
-    ).catch((err) => console.log("group error: ",err));
+    ).catch((err) => node.debuglog(err.message,"error"));
 
     node.onConnected = function(){
       node.gatewayReachable = node.server.gatewayReachable;
@@ -48,8 +48,6 @@ module.exports = function (RED) {
         }
 
         node.retMsg = null;
-        console.log("node.groupReachable ",node.groupReachable)
-        console.log("node.gatewayReachable ",node.gatewayReachable)
         if (node.groupReachable && node.gatewayReachable) {
           node.doAction(msg);
         }else if (_.get(msg, 'payload.cmd').toUpperCase() === "GETSTATUS" || _.get(msg, 'payload.cmd').toUpperCase() === "TEST") {
@@ -72,15 +70,15 @@ module.exports = function (RED) {
       let runAction = {
         "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.basicGroup(node.server.getGroup(config.groupId))}},
         "TOGGLE" : _ => node.customToggle(),
-        "TURNON" : _ => node.group.turnOn().catch((err) => console.log("err ", err)),
-        "TURNOFF" : _ => node.group.turnOff().catch((err) => console.log("err ", err)),
+        "TURNON" : _ => node.group.turnOn().catch((err) => node.debuglog(err.message,"error")),
+        "TURNOFF" : _ => node.group.turnOff().catch((err) => node.debuglog(err.message,"error")),
         "SETPROPERTIES": function (payload) {
           if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object') {
             try {
               let groupOperation = serialise.grouopOperation(payload.properties);
               node.server.tradfri.operateGrouo(node.server.getGroup(config.groupId),groupOperation);
             } catch (err){
-              node.debuglog("Could not apply the group properties. Please make sure the properties are valid. Error: "+err.message,"warn");
+              node.debuglog("Could not apply the group properties. Please make sure the properties are valid. Error: "+err.message,"error");
             }
           }
         },
@@ -93,8 +91,7 @@ module.exports = function (RED) {
 
     node.customToggle = function(){
       let currentState = serialise.basicGroup(node.server.getGroup(config.groupId)).onOff;
-      console.log("toggle ",!currentState)
-      node.group.toggle(!currentState).catch((err) => console.log("error toggling ", err))
+      node.group.toggle(!currentState).catch((err) => node.debuglog(err.message,"error"))
     }
 
     node.aliveCheckLoop = function(){
@@ -103,7 +100,7 @@ module.exports = function (RED) {
           if (node.groupReachable) {
             node.debuglog("in the aliveCheckLoop every "+ secondsInterval/1000 + " seconds");
             // increase and decrease colortemp continuously to detect an alive = false situation.
-            node.spectrumLight.setColorTemperature(node.spectrumLight.colorTemperature + node.direction).then(_=>{}).catch((err)=>console.log("caught checkloop error ",err));
+            node.spectrumLight.setColorTemperature(node.spectrumLight.colorTemperature + node.direction).then(_=>{}).catch((err)=>node.debuglog("caught checkloop error " +err.message,"error"));
             node.direction *= -1;
           }
         },secondsInterval

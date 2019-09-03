@@ -4,6 +4,8 @@ const serialise = require('../common/serialise');
 
 module.exports = function (RED) {
 
+  RED.log.info("Ikea Home Smart version " + require('../package.json').version );
+
   function IkeaGatewayConfigNode(config) {
     RED.nodes.createNode(this, config);
     let node = this;
@@ -276,7 +278,7 @@ module.exports = function (RED) {
   }
 
   RED.httpAdmin.get("/ikea-gateway-items", RED.auth.needsPermission("ikea-gateway-devices.read"), (req, res) => {
-
+    //TODO check for  (valid) nodeId
     let nodeId = req.query.nodeId;
     let type = req.query.type;
     let configNode = RED.nodes.getNode(nodeId);

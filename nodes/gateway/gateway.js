@@ -17,7 +17,7 @@ module.exports = function (RED) {
     node.server.getConnection.then(
       () => node.onConnected(),
       () => node.status({fill: 'red', shape: 'ring', text: 'could not connect'})
-    ).catch((err) => console.log("gateway error: ",err));
+    ).catch((err) => node.debuglog(err.message,"error"));
 
     node.onConnected = function(){
       node.status({fill: "green", shape: "ring", text: "connected (v. "+node.server.gateways[1].version+")"});
@@ -49,7 +49,7 @@ module.exports = function (RED) {
       let retArray = [];
       let runAction = {
         "REBOOT": function () {
-          node.server.tradfri.rebootGateway().then(()=>node.debuglog("reboot has started"),()=>node.debuglog("reboot failed to start")).catch(err => console.log(err));
+          node.server.tradfri.rebootGateway().then(()=>node.debuglog("reboot has started"),()=>node.debuglog("reboot failed to start")).catch(err => node.debuglog(err.message,"error"));
         },
         "GETSTATUS": function(){
           node.retMsg = {"payload":{"status":serialise.basicGateway(node.server.gateways[1])}};

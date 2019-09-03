@@ -27,7 +27,7 @@ module.exports = function (RED) {
     node.server.getConnection.then(
       _ => node.onConnected(),
       _ => node.status({fill: 'red', shape: 'ring', text: 'could not connect'})
-    ).catch((err) => console.log("light error: ",err));
+    ).catch((err) => node.debuglog(err.message,"error"));
 
     node.onConnected = function(){
       node.gatewayReachable = node.server.gatewayReachable;
@@ -66,20 +66,20 @@ module.exports = function (RED) {
       node.retMsg = null;
       let runAction = {
         "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}} ,
-        "TOGGLE" : _ => node.light.toggle().catch((err) => console.log("error toggling ", err)),
-        "TURNON" : _ => node.light.turnOn().catch((err) => console.log("err ", err)),
-        "TURNOFF" : _ => node.light.turnOff().catch((err) => console.log("err ", err)),
+        "TOGGLE" : _ => node.light.toggle().catch((err) => node.debuglog(err.message,"error")),
+        "TURNON" : _ => node.light.turnOn().catch((err) => node.debuglog(err.message,"error")),
+        "TURNOFF" : _ => node.light.turnOff().catch((err) => node.debuglog(err.message,"error")),
         "SETPROPERTIES": (payload) => {
           if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object') {
             try {
               let lightOperation = serialise.lightOperation(payload.properties);
-              node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),groupOperation);
+              node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),lightOperation);
             } catch (err){
-              node.debuglog("Could not apply the light properties. Please make sure the properties are valid. Error: "+err.message,"warn");
+              node.debuglog("Could not apply the light properties. Please make sure the properties are valid. Error: "+err.message,"error");
             }
           }
         },
-        "default": _ => {console.log("heel vreemd")}
+        "default": _ => {}
       };;
       return (runAction[action] || runAction['default'])(msg.payload);
     };
@@ -97,7 +97,7 @@ module.exports = function (RED) {
             node.server.tradfri.operateLight(light,{"transitionTime":light.lightList[0].transitionTime + node.direction});
           }else{
             light.lightList[0].setColorTemperature(light.lightList[0].colorTemperature + node.direction).then(_ => {
-            }).catch((err) => console.log("caught checkloop error ", err));
+            }).catch((err) => node.debuglog("caught checkloop error " + err.message,"error"));
           }
           node.direction *= -1;
         }
