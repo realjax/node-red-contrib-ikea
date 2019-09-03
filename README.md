@@ -3,7 +3,7 @@
 * [License](LICENSE)
 * [Changelog](RELEASE_NOTES.md)
 
-[link text](#abcd)
+[link text](#rebootNote)
 
 The intention of this package is to bring together as many Ikea Home Smart devices as possible into a single and consistent way and to control them using Node Red.
 
