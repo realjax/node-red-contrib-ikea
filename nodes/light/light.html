@@ -94,8 +94,69 @@
 </script>
 
 <script type="text/x-red" data-help-name="ikea light">
-    <p>
+    <p>Connects to an Ikea lightbulb</p>
+    <p>This node is used to set a lights properties and track it's status.<p>
+    The light node receives callbacks with a status <em>whenever the state of a light changes</em>. Changes can come from using this node but can for instance
+    also be caused because the tradfri app was used to switch a light on or off.
     </p>
+    <h3>Inputs</h3>
+      <dl class="message-properties">
+          <dt>payload
+              <span class="property-type">json</span>
+          </dt>
+          <dd>Command to the gateway <span class="property-type">json</span>, example:
+{
+  "cmd": "getStatus"
+}
+              See the 'input commands' section details below for a list of possible commands
+          </dd>
+      </dl>
+
+    <h3>Outputs</h3>
+      <dl class="message-properties">
+          <dt>payload
+              <span class="property-type">json</span>
+          </dt>
+           <dd>Returns the state of the light.
+           </dd>
+      </dl>
+
+
+    <H3>Details</h3>
+    <H4>Configuration</h4>
+    <ul>
+      <li>
+    </ul>
+    <br><br>
+     <H4>Input commands</<h4>
+     <ul>
+        <li><code>"getStatus"</code><br>Returns a json object in the <code>msg.payload</code> with several status properties:<br>
+        Example output:
+<pre>
+{"status":
+  { "id":65537,
+    "name":"Light in the attic",
+    "model":"TRADFRI bulb E27 WS opal 980lm",
+    "firmware":"1.2.217",
+    "alive":true,
+    "on":false,
+    "brightness":0,
+    "colorTemperature":100,
+    "color":"efd275",
+    "transition":0.5,
+    "created":1539251798,
+    "seen":1567994451,
+    "spectrum":"white",
+    "type":2,
+    "power":1
+  }
+}
+</pre>
+
+    <H4>Configuration</h4>
+    <ul>
+      <li>
+    </ul>
 
 
 </script>

@@ -49,6 +49,7 @@ module.exports = function (RED) {
       let retArray = [];
       let runAction = {
         "REBOOT": function () {
+          node.retMsg = {"payload":{"status":"rebooting","reason": "initiated by client"}};
           node.server.tradfri.rebootGateway().then(()=>node.debuglog("reboot has started"),()=>node.debuglog("reboot failed to start")).catch(err => node.debuglog(err.message,"error"));
         },
         "GETSTATUS": function(){

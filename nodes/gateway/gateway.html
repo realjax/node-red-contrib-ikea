@@ -29,50 +29,265 @@
 </script>
 
 <script type="text/x-red" data-help-name="ikea-gateway">
-    <p>Ikea Tradfri Gateway</p>
+    <p>Connects to an Ikea Home smart Tradfri Gateway</p>
 
-    <p>This node retrieves specific info from the Ikea gateway</p>
-    <h3>Details</h3>
-
+    <p>This node retrieves info from the gateway or executes a command on it.
+    The node, like the light and group nodes, receives callbacks but these are only  used to change the label of the node in the UI (version of the firmware and/or connected or not).
+    </p>
 
     <h3>Inputs</h3>
     <dl class="message-properties">
-        <dt>Command to the gateway <span class="property-type">json</span>, example: </dt>
-        <dd>
+        <dt>payload
+            <span class="property-type">json</span>
+        </dt>
+        <dd>Command to the gateway <span class="property-type">json</span>, example:
             <pre>
 {
-  "cmd": "write",
-  "sid": "158d000128f9dd",
-  "model": "ctrl_ln1",
-  "data": {"channel_0": "on"}
+  "cmd": "getStatus"
 }
             </pre>
+            See details below for a list of possible commands
         </dd>
     </dl>
 
     <h3>Outputs</h3>
-    <p>Passes the complete json object received from the gateway</p>
+      <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">json</span>
+        </dt>
+        <dd>Returns the state, or a list of devices, lights, groups or scenes.
+        The output depends on what command was sent, see details below for examples.
+        </dd>
+      </dl>
 
-    <p>Sample message:</p>
-    <p>
-    <pre>
-{
-   "fromip": "192.168.0.110:4321",
-   "ip": "192.168.0.110",
-   "port": 4321,
-   "payload": {
-      "cmd": "report",
-      "model": "86sw1",
-      "sid": "158d000183bd84",
-      "short_id": 64407,
-      "data": {
-        "channel_0": "click"
-      }
-   },
-   "_msgid":"a8d6c233.9d439"
+     <h3>Details</h3>
+      <p>
+      The gateway supports a number of commands. The value for the 'cmd' property can be any of the following:
+      <ul>
+        <li><code>"getStatus"</code><br>Returns a json object in the <code>msg.payload</code> with several status properties:<br>
+        Example output:
+<pre>
+{ "status":
+  { "alexaPairStatus":false,
+    "googleHomePairStatus":true,
+    "utcNowUnixTimestamp":251,
+    "utcNowISODate":"1970-01-01T00:04:11.008104Z",
+    "ntpServerUrl":"2.tradfri.pool.ntp.org",
+    "version":"1.8.26",
+    "otaUpdateState":false,
+    "updateProgress":0,
+    "updatePriority":5,
+    "releaseNotes":"",
+    "dstStartMonth":3,
+    "dstStartDay":31,
+    "dstStartHour":0,
+    "dstStartMinute":59,
+    "dstEndMonth":10,
+    "dstEndDay":27,
+    "dstEndHour":1,
+    "dstEndMinute":0,
+    "dstTimeOffset":60
+    }
 }
-    </pre>
-    </p>
+</pre>
+Note:
+        <ul>
+          <li> alexaPairStatus: Whether the gateway is paired with  Amazon Alexa or not.
+          <li> googleHomePairStatus: Whether the gateway is paired with Google Home or not.
+          <li> utcNowUnixTimestamp: Current UTC time as a unix timestamp
+            (seconds since 1970-01-01).
+          <li> utcNowISODate: Current UTC time as an XML (ISO) date string. Includes milliseconds
+          <li> ntpServerUrl: The URL of the NTP server the gateway takes its time information from
+          <li> version: Version of the gateway firmware
+          <li> otaUpdateState: Whether a firmware update is available (probably)
+          <li> updateProgress: The percentage of the current updates's progress
+          <li> updatePriority: UpdatePriority - The priority of the firmware update. One of the following values:
+            <ul>
+              <li> 0 (Normal)
+              <li> 1 (Critical)
+              <li> 2 (Required)
+              <li> 5 (Forced)
+            </ul>
+          <li> releaseNotes: Additional information about the update. Not sure if it's a changelog or just an URL.
+          <li> dstStartMonth: daylight saving's time start month,
+          <li> dstStartDay: daylight saving's time start day,
+          <li> dstStartHour:  daylight saving's time start hour,
+          <li> dstStartMinute:  daylight saving's time start minute,
+          <li> dstEndMonth:  daylight saving's time end month,
+          <li> dstEndDay: daylight saving's time end day,
+          <li> dstEndHour: daylight saving's time end hour,
+          <li> dstEndMinute: daylight saving's time end hour minute,
+          <li> dstTimeOffset: unsure
+        </ul>
+        <br>
+        <li><code>"getDevices"</code><br>
+        Returns a json object containing an array of all devices that were <strong>added through the Ikea Home Smart Android or iOs app.</strong><br>
+        Example output:
+        <pre>
+{"devices":
+  [
+    { "deviceId":65548,
+      "name":"My outlet",
+      "type":3
+    },
+    { "deviceId":65551,
+      "name":"My light",
+      "type":2
+    },
+    { "deviceId":65552,
+      "name":"My remote",
+      "type":0
+    }
+  ]
+}
+        </pre>
+        Note:<br>
+        The types represent the different devices;
+        <ul>
+          <li> 0   "normal" remote
+          <li> 1   remote which has been paired with another remote. You can find details <a href="https://www.reddit.com/r/tradfri/comments/6x1miq">here</a> on how to achieve this configuration
+          <li> 2   lightbulb
+          <li> 3   smart plug
+          <li> 4   motion sensor
+        </ul>
+        <br>
+        <li><code>"getLights"</code><br>
+        Similar to the <em>getDevices</em> except the output only contains devices of type 2 (lightbulb).<br>
+        <br>
+        <li><code>"getGroups"</code><br>
+        Returns a json object containing an array of all groups( and their deviceIds) that were <strong>added through the Ikea Home Smart Android or iOs app.</strong><br>
+        Example output:
+        <pre>
+{"groups":
+  [
+    { "groupId":131073,
+      "name":"bathroom",
+      "devices":
+        [
+          65538,
+          65548
+        ]
+    },
+    { "groupId":131077,
+      "name":"master bedroom",
+      "devices":
+        [
+          65544,
+          65543,
+          65542
+        ]
+    }
+  ]
+}
+        </pre>
+        <br>
+        <li><code>"getScenes"</code><br>
+        Returns a json object containing an array of all the <strong>custom</strong> scenes that were <strong>added through the Ikea Home Smart Android or iOs app.</strong><br>
+        Example output:<br>
+<pre>
+{"scenes":
+  [
+    { "sceneId":196628,
+      "name":"My scene",
+      "isActive":false,
+      "lightSetting":
+        [
+          { "isProxy":true,
+            "options":{},
+            "name":"",
+            "createdAt":0,
+            "instanceId":65537,
+            "color":"f1e0b5",
+            "hue":0,
+            "saturation":0,
+            "colorX":0,
+            "colorY":0,
+            "colorTemperature":0,
+            "dimmer":0,
+            "onOff":false
+           }
+        ]
+    }
+  ]
+ }
+</pre>
+        Note: A scene can contain multiple lightSetting objects when it was created for a group containing several lightbulbs.<br>
+         <br>
+        <li><code>"reboot"</code><br>
+        Causes the hub to reboot.<br>
+        Output: <br>
+<pre>
+{ "status":"rebooting",
+  "reason":"initiated by client"}
+</pre>
+Note: This is a non destructive operation, all settings are preserved.<br><br>
 
+        <li><code>"setLightProperties"</code><br>
+        Sets the properties for a light, use a json <code>msg.payload</code> like this:
+<pre>
+{ "cmd" : "setLightProperties",
+  "deviceId": "65551",
+  "properties":
+    { "onOff: true,
+      "dimmer: 100,
+      "transitionTime: 1.5,
+      "colorTemperature: 50,
+      "color: "efd275",
+      "hue: 4,
+      "saturation: 5
+    }
+}
+</pre>
+        Note:<br>
+        <ul>
+        <li>deviceId - the ID of the lightbulb
+        <li>dimmer - Dims the light to the given brightness. (0-100)
+        <li>transitionTime -  The duration of state changes in seconds. Default 0.5s, not supported for on/off.
+        <li>The following are only supported for spectrum lights:
+          <ul>
+            <li>colorTemperature - Changes a white spectrum lightbulb's color temperature to the given value. The color temperature in percent, where 0% equals cold white and 100% equals warm white.
+            <li>color - Changes an RGB lightbulb's hex color to the given value. May also be use for white spectrum bulbs to target one of the predefined colors f5faf6 (cold), f1e0b5 (normal) and efd275 (warm).
+            <li>hue - Changes an RGB lightbulb's hue to the given value.
+            <li>saturation - Changes an RGB lightbulb's saturation to the given value.
+          </ul>
+        </ul>
+        <br>
+        <ul>
+        <li><em>All properties are optional but setting a dimmer value only on a no-spectrum light causes the light to switch on!</em>
+        <li>Properties can also be set through the light node.
+        </ul>
+        <br>
+        <li><code>"setGroupProperties"</code><br>
+        Sets the properties for a group, use a json <code>msg.payload</code> like this:
+<pre>
+{ "cmd" : "setGroupProperties",
+  "groupId": "131073",
+  "properties":
+    { "onOff: true,
+      "dimmer: 100,
+      "transitionTime: 1.5,
+      "sceneId: 196628
+    }
+}
+</pre>
+       Note:<br>
+        <ul>
+        <li>groupId - the ID of the group
+        <li>dimmer - Dims the light to the given brightness. (0-100)
+        <li>transitionTime -  The duration of state changes in seconds. Default 0.5s, not supported for on/off.
+        <li>sceneId - applies the scene to the group.
+        </ul>
+        <br>
+        <ul>
+        <li><em>All properties are optional but setting a dimmer value only on a group containing one of more no-spectrum lights causes those lights to switch on!</em>
+        <li>Properties can also be set through the group node.
+        </ul>
+      </ul>
+      <p>
 
+  <h3>References</h3>
+    <ul>
+        <li><a>GitHub</a> - the nodes github repository</li>
+        <li>AlCalzone's <a href="https://github.com/AlCalzone/node-tradfri-client">node-tradfri-client</a></li>
+    </ul>
 </script>

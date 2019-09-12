@@ -65,7 +65,7 @@ module.exports = function (RED) {
       let action = msg.payload.cmd.toUpperCase()
       node.retMsg = null;
       let runAction = {
-        "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}} ,
+        "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}},
         "TOGGLE" : _ => node.light.toggle().catch((err) => node.debuglog(err.message,"error")),
         "TURNON" : _ => node.light.turnOn().catch((err) => node.debuglog(err.message,"error")),
         "TURNOFF" : _ => node.light.turnOff().catch((err) => node.debuglog(err.message,"error")),

@@ -13,11 +13,10 @@ module.exports = {
       color: accessory.lightList[0].color,
       hue: accessory.lightList[0].hue,
       saturation: accessory.lightList[0].saturation,
-      colorX: accessory.lightList[0].colorX,
-      colorY: accessory.lightList[0].colorY,
       transition: accessory.lightList[0].transitionTime,
       created: accessory.createdAt,
       seen: accessory.lastSeen,
+      spectrum: accessory.lightList[0]._spectrum,
       type: accessory.type,
       power: accessory.deviceInfo.power
     });
@@ -43,6 +42,7 @@ module.exports = {
     (obj1.transition == obj2.transition) &&
     (obj1.created == obj2.created) &&
     (obj1.seen == obj2.seen) &&
+    (obj1.spectrum == obj1.spectrum) &&
     (obj1.type == obj2.type) &&
     (obj1.power == obj2.power);
   },
@@ -94,7 +94,7 @@ module.exports = {
   },
   grouopOperation: function (item) {
     return Object.assign({}, {
-      onOff: item.onOff,
+      onff: item.onOff,
       dimmer: item.brightness,
       transitionTime: item.transitionTime,
       sceneId: item.sceneId
