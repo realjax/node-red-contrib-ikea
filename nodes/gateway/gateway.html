@@ -98,7 +98,7 @@ Note:
             (seconds since 1970-01-01).
           <li> utcNowISODate: Current UTC time as an XML (ISO) date string. Includes milliseconds
           <li> ntpServerUrl: The URL of the NTP server the gateway takes its time information from
-          <li> version: Version of the gateway firmware
+          <li> version: Version of the gateway firmware ( see below for link to release notes)
           <li> otaUpdateState: Whether a firmware update is available (probably)
           <li> updateProgress: The percentage of the current updates's progress
           <li> updatePriority: UpdatePriority - The priority of the firmware update. One of the following values:
@@ -146,13 +146,13 @@ Note:
         <ul>
           <li> 0   "normal" remote
           <li> 1   remote which has been paired with another remote. You can find details <a href="https://www.reddit.com/r/tradfri/comments/6x1miq">here</a> on how to achieve this configuration
-          <li> 2   lightbulb
+          <li> 2   light bulb
           <li> 3   smart plug
           <li> 4   motion sensor
         </ul>
         <br>
         <li><code>"getLights"</code><br>
-        Similar to the <em>getDevices</em> except the output only contains devices of type 2 (lightbulb).<br>
+        Similar to the <em>getDevices</em> except the output only contains devices of type 2 (light bulb).<br>
         <br>
         <li><code>"getGroups"</code><br>
         Returns a json object containing an array of all groups( and their deviceIds) that were <strong>added through the Ikea Home Smart Android or iOs app.</strong><br>
@@ -211,7 +211,7 @@ Note:
   ]
  }
 </pre>
-        Note: A scene can contain multiple lightSetting objects when it was created for a group containing several lightbulbs.<br>
+        Note: A scene can contain multiple lightSetting objects when it was created for a group containing several light bulbs.<br>
          <br>
         <li><code>"reboot"</code><br>
         Causes the hub to reboot.<br>
@@ -240,15 +240,15 @@ Note: This is a non destructive operation, all settings are preserved.<br><br>
 </pre>
         Note:<br>
         <ul>
-        <li>deviceId - the ID of the lightbulb
+        <li>deviceId - the ID of the light bulb
         <li>dimmer - Dims the light to the given brightness. (0-100)
         <li>transitionTime -  The duration of state changes in seconds. Default 0.5s, not supported for on/off.
         <li>The following are only supported for spectrum lights:
           <ul>
-            <li>colorTemperature - Changes a white spectrum lightbulb's color temperature to the given value. The color temperature in percent, where 0% equals cold white and 100% equals warm white.
-            <li>color - Changes an RGB lightbulb's hex color to the given value. May also be use for white spectrum bulbs to target one of the predefined colors f5faf6 (cold), f1e0b5 (normal) and efd275 (warm).
-            <li>hue - Changes an RGB lightbulb's hue to the given value.
-            <li>saturation - Changes an RGB lightbulb's saturation to the given value.
+            <li>colorTemperature - Changes a white spectrum light bulb's color temperature to the given value. The color temperature in percent, where 0% equals cold white and 100% equals warm white.
+            <li>color - Changes an RGB light bulb's hex color to the given value. May also be use for white spectrum bulbs to target one of the predefined colors f5faf6 (cold), f1e0b5 (normal) and efd275 (warm).
+            <li>hue - Changes an RGB light bulb's hue to the given value.
+            <li>saturation - Changes an RGB light bulb's saturation to the given value.
           </ul>
         </ul>
         <br>
@@ -289,5 +289,6 @@ Note: This is a non destructive operation, all settings are preserved.<br><br>
     <ul>
         <li><a>GitHub</a> - the nodes github repository</li>
         <li>AlCalzone's <a href="https://github.com/AlCalzone/node-tradfri-client">node-tradfri-client</a></li>
+        <li>Ikea Home Smart <a href="https://ww8.ikea.com/ikeahomesmart/releasenotes/releasenotes.html">release notes</a>
     </ul>
 </script>
