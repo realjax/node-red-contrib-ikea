@@ -119,7 +119,7 @@ module.exports = function (RED) {
               shape: 'ring',
               text: 'Group is ' + (stateColor === "red" ? "not powered" : stateColor === "green" ? "on" : "off")
             });
-            node.send([{"payload": groupObject}]);
+            node.send([{"payload": {"status":groupObject}}]);
           }
           node.groupReachable = message.content.alive ;
           node.lastMessageReceived = groupObject;
@@ -144,3 +144,4 @@ module.exports = function (RED) {
   }
   RED.nodes.registerType('ikea-light-group', IkeaLightGroupNode);
 };
+// TODO: callback is not a {"status": {...}) object

@@ -96,22 +96,77 @@
 <script type="text/x-red" data-help-name="ikea-light">
 
     <p>Connects to an Ikea light bulb</p>
-    <p>This node is used to set a lights properties and track it's status.<p>
+    <p>This node is used to control a light and/or track it's status.<p>
     The light node receives callbacks with a <code>msg.payload</code> <em>whenever the state of a light changes</em>. Changes can come from using this node but can for instance
     also be caused because the tradfri app, Google Home or Alexa was used to switch a light on or off.
     <br><br>
     <em>Note: A single state change can cause the hub to send multiple callbacks, all slightly different. Although attempts are made to minimise this behavior it is not completely eliminated. It shouldn't interfere with your flow but keep this in mind.</em>
     </p>
+    <H3>Configuration</h3>
+    Configuring the node
+    <ul>
+      <li><code>Gateway</code>  - Select a predefined gateway, edit or create a new one.
+      <li><code>Name</code>  - Give this light node instance a name. If not, it defaults to 'Ikea light'
+      <li><code>Light</code> - Click the <i class="fa fa-search"></i> icon to show a list of all lights added through the Ikea app. You can then pick one.
+      <li><code>Detect light is alive?</code> - When the light you picked was a spectrum light (RGB or white spectrum) this option is enabled and you can decide to track its alive state.
+      This means that this node will query the light to determine if it happened to be switched off using a conventional (wall) switch. The node will then receive a callback with a <code>msg.payload</code> which has 'alive' set to false.
+    </ul>
     <h3>Inputs</h3>
       <dl class="message-properties">
           <dt>payload
               <span class="property-type">json</span>
           </dt>
-          <dd>Command to the gateway <span class="property-type">json</span>, example <code>msg.payload</code>:
+          <dd>Command to send to the light<span class="property-type">json</span><br>
+          example <code>msg.payload</code>:
+<pre>
 {
   "cmd": "getStatus"
 }
-              See the 'input commands' section details below for a list of possible commands
+</pre>
+              Possible commands:
+              <ul>
+                <li><code>"getStatus"</code><br>Returns a json object in the <code>msg.payload</code> with the current status.
+                <br>
+                <li><code>"toggle"</code><br> Toggles the light to its opposite state.
+                <br>
+                <li><code>"turnOn"</code><br> Turns the light on.
+                <br>
+                <li><code>"turnOff"</code><br>Turns the light off.
+                <br>
+                <li><code>"setProperties"</code><br> Change several properties of a light bulb. Syntax <code>msg.payload</code>:
+<pre>
+{ "cmd" : "setProperties",
+  "properties":
+    { "onOff: true,
+      "dimmer: 100,
+      "transitionTime: 1.5,
+      "colorTemperature: 50,
+      "color: "efd275",
+      "hue: 4,
+      "saturation: 5
+    }
+}
+</pre>
+        Note:<br>
+                <ul>
+                <li>onOff - true to switch the light on, false for off
+                <li>dimmer - Dims the light to the given brightness. (0-100)
+                <li>transitionTime -  The duration of state changes in seconds. Default 0.5s, not supported for on/off.
+                <li>The following are only supported for spectrum lights:
+                  <ul>
+                    <li>colorTemperature - Changes a white spectrum light bulb's color temperature to the given value. The color temperature in percent, where 0% equals cold white and 100% equals warm white.
+                    <li>color - Changes an RGB light bulb's hex color to the given value. May also be use for white spectrum bulbs to target one of the predefined colors f5faf6 (cold), f1e0b5 (normal) and efd275 (warm).
+                    <li>hue - Changes an RGB light bulb's hue to the given value.
+                    <li>saturation - Changes an RGB light bulb's saturation to the given value.
+                  </ul>
+                </ul>
+                <br>
+                <ul>
+                <li>All properties are optional but setting a dimmer value only on a no-spectrum, switched off light might cause the light to switch on!
+                </ul>
+
+             </ul>
+
           </dd>
       </dl>
 
@@ -120,24 +175,9 @@
           <dt>payload
               <span class="property-type">json</span>
           </dt>
-           <dd>Returns the state of the light.
-           </dd>
-      </dl>
-
-
-    <H3>Details</h3>
-    <H4><em>Configuration</em></h4>
-    Details about the configuration  of the node
-    <ul>
-      <li><em>'Gateway'</em>  - Select a predefined gateway, edit or create a new one.
-      <li><em>'Name'</em>  - Give this light node instance a name. If not, it defaults to 'Ikea light'
-      <li><em>'Light'</em> - Click the <i class="fa fa-search"></i> icon to show a list of all lights added through the Ikea app. You can then pick one.
-      <li><em>'Detect light is alive?'</em> - When the light you picked was a spectrum light (RGB or white spectrum) this option is enabled and you can decide to track its alive state.
-      This means that this node will query the light to determine if it happened to be switched off using a conventional (wall) switch. The node will then receive a callback with a <code>msg.payload</code> which has 'alive' set to false.
-    </ul>
-
-     <H4><em>Output</em><h4>
-     The node outputs a <code>msg.payload</code> whenever the state of a light changes:
+           <dd>
+                The state of the light whenever it changes.<br>
+                Example <code>msg.payload</code>:
 <pre>
 {"status":
   { "id":65537,
@@ -158,79 +198,45 @@
   }
 }
 </pre>
-    Note:
-     <ul>
-      <li> <em>alive</em> : boolean -  True when the hub can talk to the light, false when it can't (light is cut off from power).
-      <li> <em>on</em> : boolean - True when the light is on, false when it is off.
-      <li> <em>brightness</em> : number - The brightness in percent [0..100%].
-      <li> <em>colorTemperature</em> : number - The color temperature in percent, where 0% equals cold white and 100% equals warm white.
-      <li> <em>color</em> : "efd275" : String - The 6 digit hex number representing the light bulb's color.
-      <li> <em>transition</em> : number - The duration of state changes in seconds. Default 0.5s, not supported for on/off.
-      <li> <em>created</em> : number - The unix timestamp of the creation of the device.
-      <li> <em>seen</em> : number - The unix timestamp of the last communication with the gateway.
-      <li> <em>spectrum</em> : "none" | "white" | "rgb" - The supported color spectrum of the light bulb.
-      <li> <em>type</em> : number - possible values:
-       <ul>
-          <li> 0   "normal" remote
-          <li> 1   remote which has been paired with another remote. You can find details <a href="https://www.reddit.com/r/tradfri/comments/6x1miq">here</a> on how to achieve this configuration
-          <li> 2   light bulb
-          <li> 3   smart plug
-          <li> 4   motion sensor
-        </ul>
-      <li> power : number - How the device is powered. One of the following enum values:
-        <ul>
-          <li> 0   Unknown
-          <li> 1   InternalBattery
-          <li> 2   ExternalBattery
-          <li> 3   Battery - Although not in the specs, this is apparently used by the remote
-          <li> 4   PowerOverEthernet
-          <li> 5   USB
-          <li> 6   AC_Power - I'd expect a bulb to return this but it returns 1 for some reason.
-          <li> 7   Solar
-        </ul>
-     </ul>
-     <br>
-     <H4><em>Input commands</em><h4>
-     <ul>
-        <li><code>"getStatus"</code><br>Returns a json object in the <code>msg.payload</code> with the current status.
-        <br>
-        <li><code>"toggle"</code><br> Toggles the light.
-        <br>
-        <li><code>"turnOn"</code><br> Turns the light on.
-        <br>
-        <li><code>"turnOff"</code><br>Turns the light off.
-        <br>
-        <li><code>"setProperties"</code><br> Change several properties of a light bulb. Syntax <code>msg.payload</code>:
-<pre>
-{ "cmd" : "setProperties",
-  "properties":
-    { "onOff: true,
-      "dimmer: 100,
-      "transitionTime: 1.5,
-      "colorTemperature: 50,
-      "color: "efd275",
-      "hue: 4,
-      "saturation: 5
-    }
-}
-</pre>
-        Note:<br>
-        <ul>
-        <li>onOff - true to switch the light on, false for off
-        <li>dimmer - Dims the light to the given brightness. (0-100)
-        <li>transitionTime -  The duration of state changes in seconds. Default 0.5s, not supported for on/off.
-        <li>The following are only supported for spectrum lights:
-          <ul>
-            <li>colorTemperature - Changes a white spectrum light bulb's color temperature to the given value. The color temperature in percent, where 0% equals cold white and 100% equals warm white.
-            <li>color - Changes an RGB light bulb's hex color to the given value. May also be use for white spectrum bulbs to target one of the predefined colors f5faf6 (cold), f1e0b5 (normal) and efd275 (warm).
-            <li>hue - Changes an RGB light bulb's hue to the given value.
-            <li>saturation - Changes an RGB light bulb's saturation to the given value.
-          </ul>
-        </ul>
-        <br>
-        <ul>
-        <li>All properties are optional but setting a dimmer value only on a no-spectrum switched off light might cause the light to switch on!
-        </ul>
+            Note:
+             <ul>
+              <li> <em>alive</em> : boolean -  True when the hub can talk to the light, false when it can't (light is cut off from power).
+              <li> <em>on</em> : boolean - True when the light is on, false when it is off.
+              <li> <em>brightness</em> : number - The brightness in percent [0..100%].
+              <li> <em>colorTemperature</em> : number - The color temperature in percent, where 0% equals cold white and 100% equals warm white.
+              <li> <em>color</em> : "efd275" : String - The 6 digit hex number representing the light bulb's color.
+              <li> <em>transition</em> : number - The duration of state changes in seconds. Default 0.5s, not supported for on/off.
+              <li> <em>created</em> : number - The unix timestamp of the creation of the device.
+              <li> <em>seen</em> : number - The unix timestamp of the last communication with the gateway.
+              <li> <em>spectrum</em> : "none" | "white" | "rgb" - The supported color spectrum of the light bulb.
+              <li> <em>type</em> : number - possible values:
+               <ul>
+                  <li> 0   "normal" remote
+                  <li> 1   remote which has been paired with another remote. You can find details <a href="https://www.reddit.com/r/tradfri/comments/6x1miq">here</a> on how to achieve this configuration
+                  <li> 2   light bulb
+                  <li> 3   smart plug
+                  <li> 4   motion sensor
+                </ul>
+              <li> power : number - How the device is powered. One of the following enum values:
+                <ul>
+                  <li> 0   Unknown
+                  <li> 1   InternalBattery
+                  <li> 2   ExternalBattery
+                  <li> 3   Battery - Although not in the specs, this is apparently used by the remote
+                  <li> 4   PowerOverEthernet
+                  <li> 5   USB
+                  <li> 6   AC_Power - I'd expect a bulb to return this but it returns 1 for some reason.
+                  <li> 7   Solar
+                </ul>
+             </ul>
+           </dd>
+      </dl>
 
-     </ul>
+
+    <h3>References</h3>
+    <ul>
+        <li><a>GitHub</a> - the nodes github repository</li>
+        <li>AlCalzone's <a href="https://github.com/AlCalzone/node-tradfri-client">node-tradfri-client</a></li>
+        <li>Ikea Home Smart <a href="https://ww8.ikea.com/ikeahomesmart/releasenotes/releasenotes.html">release notes</a>
+    </ul>
     </script>

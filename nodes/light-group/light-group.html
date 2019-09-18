@@ -97,88 +97,132 @@
      <div class="form-row">
         <label>&nbsp;</label>
         <input type="checkbox" id="node-input-detectAlive" style="display: inline-block; width: auto; vertical-align: top;">
-        <label id="label-detectAlive" for="node-input-detectAlive" style="width: 70%;" >Detect light is  alive?</label>
+        <label id="label-detectAlive" for="node-input-detectAlive" style="width: 70%;" >Detect group is  alive?</label>
     </div>
 </script>
 
 
 <script type="text/x-red" data-help-name="ikea-light-group">
-    <p>The Xiaomi Honeywell smoke detector</p>
+    <p>Connects to a group(room) of lights </p>
+    <p>This node controls or tracks a group of lights.<p>
+    Groups (or rooms) are created using the Ikea Home Smart app on either Android or iOS.<br>
+    You can retrieve a list of groups using the gateway node.
 
-    <h3>Inputs</h3>
-    <dl class="message-properties">
-        <dt>payload
-            <span class="property-type">json</span>
-        </dt>
-        <dd>Gateway <code>smoke-detector</code> message of type <code>heartbeat</code> or <code>report</code></dd>
-    </dl>
-
-    <h3>Outputs</h3>
-    <ol class="node-ports">
-        <li>State output
-            <dl class="message-properties">
-                <dt>payload <span class="property-type">string | json</span></dt>
-                <dd>raw data, value or template.</dd>
-            </dl>
-        </li>
-    </ol>
-
-    <h3>Details</h3>
-    <p>The incoming json message is parsed if the type model is <code>smoke-detector</code> and
-     the <code>sid</code> matches the configured value for this device.</p>
-    <p>Three output types are supported:
-        <ul>
-            <li>Full data</li>
-            <li>Just values</li>
-            <li>Template</li>
-        </ul>
+    The group node receives callbacks with a <code>msg.payload</code> <em>whenever the state of a group changes</em>. Changes can come from using this node but can for instance
+    also be caused because the tradfri app, Google Home or Alexa was used to switch a group on or off.
+    <br><br>
     </p>
-
-    <h4>Full data</h4>
-    <p>Passes the complete json object received from the gateway. Use this if you need the raw data.</p>
-    <h4>Just values</h4>
-    <p>Passes evaluated values, eg: <br>
-    <pre>
-    {
-      "alarm" : 0,
-      "density" : 0,
-      "status" : "unknown",
-      "previous_status" : "unknown",
-      "voltage" : 3.205,
-      "voltage_level" : "high",
-      "time" : 1553785011738,
-      "device" : "mySmokeAlarm"
-    }
-    </pre>
-    <br>
-    Notes
+    <H3>Configuration</h3>
+    Configuring the node
     <ul>
-      <li>Alarm values are not all discovered. So far 0  = standby, 2  = alarm and 8 = low battery</li>
-      <li>Status is set according to (known) alarm values</li>
-      <li>The voltage does not seem to change. During testing this stayed at 3.205 even though the provided voltage to the detector was much less.
+      <li><code>Gateway</code>  - Select a predefined gateway, edit or create a new one.
+      <li><code>Name</code>  - Give this group node instance a name. If not, it defaults to 'Ikea light group'
+      <li><code>Group</code> - Click the <i class="fa fa-search"></i> icon to show a list of all groups(rooms) added through the Ikea app. You can then pick one.
+      <li><code>Detect group is alive?</code> - When the group you picked contains at least one spectrum light (RGB or white spectrum) this option is enabled and you can decide to track its alive state.
+      This means that this node will query a spectrum light in the group to determine if it happened to be switched off using a conventional (wall) switch. The node will then receive a callback with a <code>msg.payload</code> which has 'alive' set to false.
     </ul>
-    </p>
-    <h4>Template</h4>
-    <p>Use your own template to pass the values on. The template can contain <a href="http://mustache.github.io/mustache.5.html">mustache-style</a> tags.
-        Any property from the data section of the full object can be used.</p>
+    <h3>Inputs</h3>
+      <dl class="message-properties">
+          <dt>payload
+              <span class="property-type">json</span>
+          </dt>
+          <dd>Command to send to the light<span class="property-type">json</span><br>
+          example <code>msg.payload</code>:
+<pre>
+{
+  "cmd": "getStatus"
+}
+</pre>
+              Possible commands:
+              <ul>
+                <li><code>"getStatus"</code><br>Returns a json object in the <code>msg.payload</code> with the current status.
+                <br>
+                <li><code>"toggle"</code><br> Toggles the light to its opposite state.
+                <br>
+                <li><code>"turnOn"</code><br> Turns the light on.
+                <br>
+                <li><code>"turnOff"</code><br>Turns the light off.
+                <br>
+                <li><code>"setProperties"</code><br> Change several properties of a light bulb. Syntax <code>msg.payload</code>:
+<pre>
+{ "cmd" : "setProperties",
+  "properties":
+    { "onOff: true,
+      "dimmer: 100,
+      "transitionTime: 1.5,
+      "colorTemperature: 50,
+      "color: "efd275",
+      "hue: 4,
+      "saturation: 5
+    }
+}
+</pre>
+        Note:<br>
+                <ul>
+                <li>onOff - true to switch the light on, false for off
+                <li>dimmer - Dims the light to the given brightness. (0-100)
+                <li>transitionTime -  The duration of state changes in seconds. Default 0.5s, not supported for on/off.
+                <li>The following are only supported for spectrum lights:
+                  <ul>
+                    <li>colorTemperature - Changes a white spectrum light bulb's color temperature to the given value. The color temperature in percent, where 0% equals cold white and 100% equals warm white.
+                    <li>color - Changes an RGB light bulb's hex color to the given value. May also be use for white spectrum bulbs to target one of the predefined colors f5faf6 (cold), f1e0b5 (normal) and efd275 (warm).
+                    <li>hue - Changes an RGB light bulb's hue to the given value.
+                    <li>saturation - Changes an RGB light bulb's saturation to the given value.
+                  </ul>
+                </ul>
+                <br>
+                <ul>
+                <li>All properties are optional but setting a dimmer value only on a no-spectrum, switched off light might cause the light to switch on!
+                </ul>
 
-    <p>Sample message:</p>
+             </ul>
+
+          </dd>
+      </dl>
+    <h3>Outputs</h3>
+      <dl class="message-properties">
+          <dt>payload
+              <span class="property-type">json</span>
+          </dt>
+           <dd>
+                The state of the light whenever it changes.<br>
+                Example <code>msg.payload</code>:
+<pre>
+{"status":
+  { "id":131077,
+    "name":"living room",
+    "onOff":true,
+    "dimmer":20.1,
+    "deviceIDs":
+      [
+        65544,
+        65543,
+        65542
+      ],
+    "sceneId":196622,
+    "alive":true
+   }
+}
+</pre>
+            Note:
+             <ul>
+              <li> <em>alive</em> : boolean -  True when the hub can talk to the light, false when it can't (light is cut off from power).
+              <li> <em>onOff</em> : boolean - True when the light is on, false when it is off.
+              <li> <em>dimmer</em> : number - The brightness in percent [0..100%].
+              <li> <em>deviceIds</em> : array of numbers - The id's of the light in this group.
+              <li> <em>sceneId</em> : number - The scene applied.
+
+             </ul>
+           </dd>
+      </dl>
 
 
-    {
-        cmd: "report"
-        model: "smoke-detector"
-        sid: "158d000112fb5d"
-        short_id: 50301
-        data: "{
-                    "voltage":3015,
-                    "density":"0"
-               }"
-    }</pre></p>
-    <h4>Disclaimer</h4>
-    <p>Be aware that this node was developed by reverse engineering the communication protocol of the smoke detector.
-    We can not be held responsible for the incorrect working of the smoke-detector node. Make sure you have other ways that notify you when smoke is detected.
-    </p>
+    <h3>References</h3>
+    <ul>
+        <li><a>GitHub</a> - the nodes github repository</li>
+        <li>AlCalzone's <a href="https://github.com/AlCalzone/node-tradfri-client">node-tradfri-client</a></li>
+        <li>Ikea Home Smart <a href="https://ww8.ikea.com/ikeahomesmart/releasenotes/releasenotes.html">release notes</a>
+    </ul>
 
 
 </script>

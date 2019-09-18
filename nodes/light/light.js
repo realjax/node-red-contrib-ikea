@@ -116,7 +116,7 @@ module.exports = function (RED) {
               shape: 'ring',
               text: 'Light is ' + (stateColor === "red" ? "not powered" : stateColor === "green" ? "on" : "off")
             });
-            node.send([{"payload": lightObject}]);
+            node.send([{"payload": {"status":lightObject}}]);
           }
           node.lightReachable = message.content.alive;
           node.lastMessageReceived = lightObject;
