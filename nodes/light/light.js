@@ -8,10 +8,10 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     let node = this;
     node.server = RED.nodes.getNode(config.gateway);
-    node.connection = false;
     node.lightReachable = true; //is the light reachable by the gateway ? ( for instance when power switched off by wall switch)
     node.gatewayReachable = true; // is the gateway reachable? ( for instance when coap client can't (temporarily) talk to gateway )
-    node.interval = null;
+    node.intervalLowerLimitSeconds = 20;
+    node.intervalUpperLimitSeconds = 40;
     node.lastMessageReceived = {};
     node.direction = 1;
     node.retMsg = null;
@@ -34,9 +34,9 @@ module.exports = function (RED) {
       node.status({fill: 'green', shape: 'ring', text: 'Connected to gateway'});
       node.server.registerListener(node.server.types.ACCESSORY,config.deviceId,node.id, node.registeredCallback);
 
-      if (config.detectAlive) {
-        node.aliveCheckLoop();
-      }
+      //force status
+      node.doAction({"payload":{"cmd":"getStatus"}});
+
       node.on("input", (msg) => {
         if (_.get(msg, 'payload.cmd') === undefined) {
           return; // do nothing unless we have a cmd
@@ -67,13 +67,13 @@ module.exports = function (RED) {
       let runAction = {
         "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}},
         "TOGGLE" : _ => node.light.toggle().catch((err) => node.debuglog(err.message,"error")),
-        "TURNON" : _ => node.light.turnOn().catch((err) => node.debuglog(err.message,"error")),
-        "TURNOFF" : _ => node.light.turnOff().catch((err) => node.debuglog(err.message,"error")),
+        "TURNON" :_ => node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),{onOff:true},true).catch((err) => node.debuglog(err.message,"error")),
+        "TURNOFF" : _ => node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),{onOff:false},true).catch((err) => node.debuglog(err.message,"error")),
         "SETPROPERTIES": (payload) => {
           if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object') {
             try {
               let lightOperation = serialise.lightOperation(payload.properties);
-              node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),lightOperation);
+              node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),payload.properties);
             } catch (err){
               node.debuglog("Could not apply the light properties. Please make sure the properties are valid. Error: "+err.message,"error");
             }
@@ -106,6 +106,7 @@ module.exports = function (RED) {
     };
 
     node.registeredCallback = function(message) {
+      let statusObject;
       let actions = {
         "status": function(message) {
           let lightObject = serialise.lightFromAccessory(message.content);
@@ -131,7 +132,12 @@ module.exports = function (RED) {
                node.aliveCheckLoop();
              }
           }
-          let statusObject = message.content.gatewayReachable?{text: "Connected to gateway",fill: "green", shape: "ring"}:{text: "Disconnected from gateway",fill: "red", shape: "ring" };
+          statusObject = message.content.gatewayReachable?{text: "Connected to gateway",fill: "green", shape: "ring"}:{text: "Disconnected from gateway",fill: "red", shape: "ring" };
+          node.status(statusObject);
+        },
+        "remove": function(message){
+          node.lightReachable = false;
+          statusObject = {text: "removed",fill: "red", shape: "ring"};
           node.status(statusObject);
         }
       };
@@ -142,3 +148,4 @@ module.exports = function (RED) {
   }
   RED.nodes.registerType('ikea-light', IkeaLightNode);
 };
+//TODO: implement light removed

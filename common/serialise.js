@@ -46,18 +46,19 @@ module.exports = {
     (obj1.type == obj2.type) &&
     (obj1.power == obj2.power);
   },
-
   lightOperation: function (item) {
-    return Object.assign({}, {
-      onOff: item.onOff,
-      dimmer: item.brightness,
-      transitionTime: item.transitionTime,
-      colorTemperature: item.colorTemperature,
-      color: item.color,
-      hue: item.hue,
-      saturation: item.saturation
-    });
+    return Object.assign({},
+      item.on === null ? null || onOff: item.on,
+      item.brightness === null ? null || dimmer: item.brightness,
+      item.transitionTime === null ? null || transitionTime : item.transitionTime,
+      item.colorTemperature === null? null || colorTemperature: item.colorTemperature,
+      item.color === null ? null || color: item.color,
+      item.hue === null ? null || hue: item.hue,
+      item.saturation === null ? null || saturation: item.saturation
+    );
   },
+
+
   basicGateway: function (gateway) {
     return Object.assign({}, {
       alexaPairStatus: gateway.alexaPairStatus || false,
@@ -85,7 +86,7 @@ module.exports = {
     return Object.assign({}, {
       id: group.instanceId,
       name: group.name,
-      onOff: group.onOff,
+      on: group.onOff,
       dimmer: group.dimmer,
       deviceIDs: group.deviceIDs,
       sceneId: group.sceneId,
@@ -93,12 +94,12 @@ module.exports = {
     });
   },
   grouopOperation: function (item) {
-    return Object.assign({}, {
-      onff: item.onOff,
-      dimmer: item.brightness,
-      transitionTime: item.transitionTime,
-      sceneId: item.sceneId
-    });
+    return Object.assign({},
+      item.on === null ? null || onff: item.on,
+      item.brightness === null ? null || dimmer: item.brightness,
+      item.transitionTime === null ? null || transitionTime: item.transitionTime,
+      item.sceneId === null ? null || sceneId: item.sceneId
+    );
   },
   eventMessage: function (type,message) {
     return Object.assign({}, {

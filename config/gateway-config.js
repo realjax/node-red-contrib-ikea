@@ -24,7 +24,8 @@ module.exports = function (RED) {
 
     node.eventMessage = {
       STATUS: "status",
-      CONNECTIVITY:"connectivity"
+      CONNECTIVITY:"connectivity",
+      REMOVE:"remove"
     };
 
     node.types = {
@@ -81,6 +82,8 @@ module.exports = function (RED) {
               .on("give up", () => node.debuglog("can't connect to gateway, giving up..."))
               .on("device updated",  node.itemUpdatedCallback)
               .on("group updated",   node.itemUpdatedCallback)
+              .on("device removed",  instanceId => node.itemRemoved(node.getTypeObjectList("default"),instanceId))
+              .on("group removed",   instanceId => node.itemRemoved(node.getTypeObjectList("group"),instanceId))
               .on("gateway updated", node.itemUpdatedCallback)
               .on("scene updated",   (id, item) => node.itemUpdatedCallback(item))
               .on("rebooting", (reason) => {
@@ -185,7 +188,7 @@ module.exports = function (RED) {
 
     node.getDebouncedGroupMessage = (group) => { // create an event message when certain settings for all lights in a group are the same, else return null.
       let allLightsInGroup =  _.chain(group.deviceIDs)
-                            .filter(id => node.getAccessory(id).type === TC.AccessoryTypes.lightbulb)
+                            .filter(id => node.getAccessory(id) !== undefined && node.getAccessory(id).type === TC.AccessoryTypes.lightbulb)
                             .map((id)=>serialise.lightFromAccessory(node.getAccessory(id)))
                             .value();
       let allOnOffSame  = _.every(allLightsInGroup, (item) => allLightsInGroup[0].on === item.on);
@@ -275,6 +278,19 @@ module.exports = function (RED) {
       node.notifyListeners(node.types.ALL, message);
     };
 
+    node.itemRemoved = function(type,instanceId){
+      /* node.getTypeObjectList(type)[instanceId] = item
+       delete node.getTypeObjectList(type)[instanceId];
+       let deviceInGroup = node.getGroupForAccessory(instanceId)
+       if (deviceInGroup !== null) {
+          _.remove(node.groups[deviceInGroup].deviceIds, function(n){n == instanceId})
+       }
+      */
+
+      let message = serialise.eventMessage("remove",{"instanceId":instanceId});
+      //node.notifyListeners(node.types.ALL, message);
+    };
+
   }
 
   RED.httpAdmin.get("/ikea-gateway-items", RED.auth.needsPermission("ikea-gateway-devices.read"), (req, res) => {
@@ -288,6 +304,7 @@ module.exports = function (RED) {
                       configNode.getAccessory(id).lightList[0].spectrum != "none")
         .value()
     };
+
     let getDeviceObject = function(item) {
       let objects = {
         "light": function (item) {

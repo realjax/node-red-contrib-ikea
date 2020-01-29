@@ -108,8 +108,8 @@
     Groups (or rooms) are created using the Ikea Home Smart app on either Android or iOS.<br>
     You can retrieve a list of groups using the gateway node.
 
-    The group node receives callbacks with a <code>msg.payload</code> <em>whenever the state of a group changes</em>. Changes can come from using this node but can for instance
-    also be caused because the tradfri app, Google Home or Alexa was used to switch a group on or off.
+    The group node receives callbacks with a <code>msg.payload</code> (see output section below) <em>whenever the state of a group changes</em>. Changes can come from using this node but can for instance
+    also be caused by the tradfri app, Google Home or Alexa.
     <br><br>
     </p>
     <H3>Configuration</h3>
@@ -147,7 +147,7 @@
 <pre>
 { "cmd" : "setProperties",
   "properties":
-    { "onOff: true,
+    { "on: true,
       "dimmer: 100,
       "transitionTime: 1.5,
       "colorTemperature: 50,
@@ -159,7 +159,7 @@
 </pre>
         Note:<br>
                 <ul>
-                <li>onOff - true to switch the light on, false for off
+                <li>on - true to switch the light on, false for off
                 <li>dimmer - Dims the light to the given brightness. (0-100)
                 <li>transitionTime -  The duration of state changes in seconds. Default 0.5s, not supported for on/off.
                 <li>The following are only supported for spectrum lights:
@@ -191,7 +191,7 @@
 {"status":
   { "id":131077,
     "name":"living room",
-    "onOff":true,
+    "on":true,
     "dimmer":20.1,
     "deviceIDs":
       [
@@ -207,7 +207,7 @@
             Note:
              <ul>
               <li> <em>alive</em> : boolean -  True when the hub can talk to the light, false when it can't (light is cut off from power).
-              <li> <em>onOff</em> : boolean - True when the light is on, false when it is off.
+              <li> <em>on</em> : boolean - True when the light is on, false when it is off.
               <li> <em>dimmer</em> : number - The brightness in percent [0..100%].
               <li> <em>deviceIds</em> : array of numbers - The id's of the light in this group.
               <li> <em>sceneId</em> : number - The scene applied.

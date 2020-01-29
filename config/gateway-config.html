@@ -144,15 +144,17 @@
       <li><code>Name</code><br>
       Give this connection a name<br><br>
       <li><code>IP/Host</code><br>
-      The hostname (or ip address) of your gateway. Click the <i class="fa fa-search"></i> icon to scan your network for gateways. The first one found will bein the dropdownlist with both its name and its ipaddress.
+      The hostname (or ip address) of your gateway. <strong>Click the <i class="fa fa-search"></i> icon to scan your network for gateways.</strong> The first one found will be appear in the list with both its name and its IP address.
       <br>
-      <strong>It is recommended to select the ipaddress instead of the name.</strong><br>Due to unresolved issues in one of the libraries this node depends on you might run into issues when using the name.<br><br>
+      I recommended using he IP address instead of the name.<br>There were issues in one of the libraries this node depends on when using the name. I have not tested if these are resolved yet.<br><br>
       <li><code>Securitycode</code><br>
       The securitycode is needed (together with the IP/Host name) to authenticate with the gateway.<br>
-      The securitycode is printed on the back of your gateway. Enter it here and when done click the  <i class="fa fa-key"></i> icon to authenticate.
+      The securitycode is printed on the back of your gateway. Enter it here and <strong>when done click the  <i class="fa fa-key"></i> icon to authenticate.</strong>
       <br>If the authentication was successful an <em>identity</em> and a <em>psk</em> value will be returned.
       <br><br><strong>Note:</strong> To comply with IKEA's requests, the security code is not stored permanently. Instead, the returned identity and psk are stored and  used for future connections to the gateway.<br><br>
       <li><code>Identity and PSK</code><br>
       These values are returned by the gateway when succesfully authenticated and are used for connections to the gateway. They can not be changed manually.
+      <br><br>
+      Click the 'Add' button to save your configuration.
     </ul>
 </script>

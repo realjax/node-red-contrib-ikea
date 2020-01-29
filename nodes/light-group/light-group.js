@@ -9,7 +9,7 @@ module.exports = function (RED) {
     let node = this;
     node.server = RED.nodes.getNode(config.gateway);
     node.connection = false;
-    node.groupReachable = true; //is the light reachable by the gateway ? ( for instance when power switched off by wall switch)
+    node.groupReachable = true; //is the group reachable by the gateway ? ( for instance when power switched off by wall switch)
     node.gatewayReachable = true; // is the gateway reachable? ( for instance when coap client can't (temporarily) talk to gateway )
     node.interval = null;
     node.lastMessageReceived = {};
@@ -119,7 +119,7 @@ module.exports = function (RED) {
               shape: 'ring',
               text: 'Group is ' + (stateColor === "red" ? "not powered" : stateColor === "green" ? "on" : "off")
             });
-            node.send([{"payload": {"status":groupObject}}]);
+            node.send([{"payload": groupObject}]);
           }
           node.groupReachable = message.content.alive ;
           node.lastMessageReceived = groupObject;
@@ -136,6 +136,19 @@ module.exports = function (RED) {
           }
           let statusObject = message.content.gatewayReachable?{text: "Connected to gateway",fill: "green", shape: "ring"}:{text: "Disconnected from gateway",fill: "red", shape: "ring" };
           node.status(statusObject);
+        },
+        "remove": function(message){
+          if (config.groupId == message.content.instanceId){
+            node.groupReachable = false;
+            node.gatewayReachable = false;
+            clearInterval(node.aliveCheckinterval);
+            node.status({fill: 'red', shape: 'ring', text: 'group deleted, please reconfigure'});
+          }else if(node.spectrumLight.instanceId == message.content.instanceId){
+            clearInterval(node.aliveCheckinterval);
+          }
+          if (_.indexOf(node.group.deviceIds,message.content.instanceId) > -1){
+
+          }
         }
       };
       actions[message.type](message);
@@ -144,4 +157,4 @@ module.exports = function (RED) {
   }
   RED.nodes.registerType('ikea-light-group', IkeaLightGroupNode);
 };
-// TODO: callback is not a {"status": {...}) object
+//TODO: implement group removed
