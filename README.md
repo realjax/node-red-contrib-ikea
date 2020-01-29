@@ -12,7 +12,7 @@ Currently only a number of Ikea's Tradfri devices are supported.  The main diffe
 * Lights and groups can be toggled ( when off switch on and vice versa), turned on or off and control brightness or color. The status of a light can also be retrieved. 
 * Does not require installing additional tools (eg. COAP clients)
 
-###Why another Ikea node for Node-RED?
+### Why another Ikea node for Node-RED?
 
 There are several reasons; the already existing nodes were either too limited, outdated and/or not open for further development. But the main 
 reason for me was the fact that the existing ones do not take the use of conventional (wall) switches into account. A hub can't 'see' when a light was switched off by cutting its power. 
@@ -37,7 +37,8 @@ This module currently contains the following nodes to provide integration of the
 * Groups
 
 # Installation
-To install this module use Node-Red GUI installer. Or run this console command in the `.node-red` folder:
+To install this module use Node-Red GUI installer. 
+Or run this console command in the `.node-red` folder:
 
 ```
 npm i node-red-contrib-ikea-home-smart
@@ -56,7 +57,6 @@ Code:
 
 
 ## Notes and disclaimers:
-
 * Unfortunately Ikea's gateway gets easily upset when it has a lot of requests to fulfil. 
 Therefor I recommend a reboot of the gateway at specific intervals. 
 Rebooting is a safe thing to do, all the gateway settings are preserved and no lights will suddenly turn on or off. 
@@ -76,4 +76,4 @@ no longer be able to find them, unless you re-select, save and deploy them.
 ## Bugs and other issues:
 This has been in development for quite some time and has also been running in my own home for a while. Still, bugs will most likely surface at some point. 
 If you find any please open an issue on the projects github repository here :   
-<https://github.com/realjax/node-red-contrib-ikea-home-smart>
+<https://github.com/realjax/node-red-contrib-ikea-home-smart/issues>
