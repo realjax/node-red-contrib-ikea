@@ -27,6 +27,6 @@
   },
   "dependencies": {
     "lodash": "^4.17.15",
-    "node-tradfri-client": "^2.1.1"
+    "node-tradfri-client": "^2.1.4"
   }
 }
