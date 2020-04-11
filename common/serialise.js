@@ -48,16 +48,15 @@ module.exports = {
   },
   lightOperation: function (item) {
     return Object.assign({},
-      item.on === null ? null || onOff: item.on,
-      item.brightness === null ? null || dimmer: item.brightness,
-      item.transitionTime === null ? null || transitionTime : item.transitionTime,
-      item.colorTemperature === null? null || colorTemperature: item.colorTemperature,
-      item.color === null ? null || color: item.color,
-      item.hue === null ? null || hue: item.hue,
-      item.saturation === null ? null || saturation: item.saturation
+      item.on != undefined ? { onOff: item.on } : null ,
+      item.brightness != undefined ?{ dimmer: item.brightness } : null,
+      item.transitionTime != undefined ? {transitionTime : item.transitionTime} : null ,
+      item.colorTemperature != undefined? {colorTemperature: item.colorTemperature} : null,
+      item.color != undefined ? {color: item.color} : null,
+      item.hue != undefined ? {hue: item.hue} : null,
+      item.saturation != undefined ? {saturation: item.saturation} : null
     );
   },
-
 
   basicGateway: function (gateway) {
     return Object.assign({}, {
@@ -93,12 +92,12 @@ module.exports = {
       alive: group.alive
     });
   },
-  grouopOperation: function (item) {
+  groupOperation: function (item) {
     return Object.assign({},
-      item.on === null ? null || onff: item.on,
-      item.brightness === null ? null || dimmer: item.brightness,
-      item.transitionTime === null ? null || transitionTime: item.transitionTime,
-      item.sceneId === null ? null || sceneId: item.sceneId
+      item.on != undefined ? {onff: item.on} : null,
+      item.brightness != undefined ? {dimmer: item.brightness} : null,
+      item.transitionTime != undefined ? {transitionTime: item.transitionTime} : null,
+      item.sceneId != undefined ? {sceneId: item.sceneId} : null
     );
   },
   eventMessage: function (type,message) {

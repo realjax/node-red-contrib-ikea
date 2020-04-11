@@ -1,10 +1,10 @@
 {
-  "name": "node-red-contrib-ikea-home-smart",
+  "name": "node-red-contrib-ikea",
   "version": "1.0.0",
   "description": "Ikea Smart Home Automation for NodeRed",
   "repository": {
     "type": "git",
-    "url": "https://github.com/realjax/node-red-contrib-ikea-home-smart"
+    "url": "https://github.com/realjax/node-red-contrib-ikea"
   },
   "license": "MIT",
   "keywords": [
@@ -23,7 +23,7 @@
   },
   "author": "Jacco Huysmans",
   "bugs": {
-    "url": "https://github.com/realjax/node-red-contrib-ikea-home-smart/issues"
+    "url": "https://github.com/realjax/node-red-contrib-ikea/issues"
   },
   "dependencies": {
     "lodash": "^4.17.13",

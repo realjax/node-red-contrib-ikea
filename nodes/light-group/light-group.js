@@ -22,7 +22,7 @@ module.exports = function (RED) {
     node.status({fill: 'grey', shape: 'ring', text: 'not connected'});
 
     node.debuglog = function(message, level = "debug"){
-      eval('RED.log.'+level+'(this.constructor.name + " \'" + node.name +"\'" +" : "+message)');
+      eval('RED.log.'+level+'(this.constructor.name + " \'" + (node.name || config.groupId)  +"\'" +" : "+message)');
     };
 
     node.server.getConnection.then(
@@ -37,7 +37,7 @@ module.exports = function (RED) {
       node.group = node.server.getGroup(config.groupId);
 
       if (config.detectAlive) {
-        node.spectrumLight = node.server.getAccessory(config.spectrumLightId).lightList[0];
+        node.spectrumLight = node.server.getAccessory(config.spectrumLightId);
         node.aliveCheckLoop();
       }
 
@@ -75,8 +75,8 @@ module.exports = function (RED) {
         "SETPROPERTIES": function (payload) {
           if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object') {
             try {
-              let groupOperation = serialise.grouopOperation(payload.properties);
-              node.server.tradfri.operateGrouo(node.server.getGroup(config.groupId),groupOperation);
+              let groupOperation = serialise.groupOperation(payload.properties);
+              node.server.tradfri.operateGroup(node.server.getGroup(config.groupId),groupOperation,true);
             } catch (err){
               node.debuglog("Could not apply the group properties. Please make sure the properties are valid. Error: "+err.message,"error");
             }
@@ -90,7 +90,7 @@ module.exports = function (RED) {
     };
 
     node.customToggle = function(){
-      let currentState = serialise.basicGroup(node.server.getGroup(config.groupId)).onOff;
+      let currentState = serialise.basicGroup(node.server.getGroup(config.groupId)).on;
       node.group.toggle(!currentState).catch((err) => node.debuglog(err.message,"error"))
     }
 
@@ -99,8 +99,9 @@ module.exports = function (RED) {
       node.aliveCheckinterval = setInterval(() => {
           if (node.groupReachable) {
             node.debuglog("in the aliveCheckLoop every "+ secondsInterval/1000 + " seconds");
-            // increase and decrease colortemp continuously to detect an alive = false situation.
-            node.spectrumLight.setColorTemperature(node.spectrumLight.colorTemperature + node.direction).then(_=>{}).catch((err)=>node.debuglog("caught checkloop error " +err.message,"error"));
+            // resend settings  to detect an alive = false situation.
+             node.server.tradfri.operateLight( node.spectrumLight,{"dimmer": node.spectrumLight.lightList[0].colorTemperature},true).then(_ => {
+             }).catch((err) => {node.debuglog("caught checkloop error " + err.message,"error"); clearInterval(node.aliveCheckinterval)});
             node.direction *= -1;
           }
         },secondsInterval
@@ -110,6 +111,7 @@ module.exports = function (RED) {
     node.registeredCallback = function(message) {
       let actions = {
         "status": function(message) {
+
           let groupObject = serialise.basicGroup(message.content);
 
           if (!_.isEqualWith(node.lastMessageReceived, groupObject)) {

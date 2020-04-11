@@ -34,8 +34,21 @@ module.exports = function (RED) {
       node.status({fill: 'green', shape: 'ring', text: 'Connected to gateway'});
       node.server.registerListener(node.server.types.ACCESSORY,config.deviceId,node.id, node.registeredCallback);
 
-      //force status
-      node.doAction({"payload":{"cmd":"getStatus"}});
+
+      node.light = node.server.getAccessory(config.deviceId);
+
+      //show current state for node
+      let stateColor = !node.light.alive ? "red" : node.light.lightList[0].onOff ? "green" : "grey";
+      node.status({
+        fill: stateColor,
+        shape: 'ring',
+        text: 'Light is ' + (stateColor === "red" ? "not powered" : stateColor === "green" ? "on" : "off")
+      });
+
+      if (config.detectAlive) {
+        node.aliveCheckLoop();
+      }
+
 
       node.on("input", (msg) => {
         if (_.get(msg, 'payload.cmd') === undefined) {
@@ -43,7 +56,7 @@ module.exports = function (RED) {
         }
 
         node.retMsg = null;
-        node.light = node.server.getAccessory(config.deviceId).lightList[0];
+
 
         if (node.lightReachable && node.gatewayReachable) {
           node.doAction(msg);
@@ -66,14 +79,14 @@ module.exports = function (RED) {
       node.retMsg = null;
       let runAction = {
         "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}},
-        "TOGGLE" : _ => node.light.toggle().catch((err) => node.debuglog(err.message,"error")),
+        "TOGGLE" : _ => node.light.lightList[0].toggle().catch((err) => node.debuglog(err.message,"error")),
         "TURNON" :_ => node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),{onOff:true},true).catch((err) => node.debuglog(err.message,"error")),
         "TURNOFF" : _ => node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),{onOff:false},true).catch((err) => node.debuglog(err.message,"error")),
         "SETPROPERTIES": (payload) => {
           if (payload.hasOwnProperty("properties") && typeof payload.properties === 'object') {
             try {
               let lightOperation = serialise.lightOperation(payload.properties);
-              node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),payload.properties);
+              node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),lightOperation,true);
             } catch (err){
               node.debuglog("Could not apply the light properties. Please make sure the properties are valid. Error: "+err.message,"error");
             }
@@ -92,12 +105,14 @@ module.exports = function (RED) {
         if (node.lightReachable) {
           node.debuglog("in the aliveCheckLoop every "+ secondsInterval/1000 + " seconds");
           // increase and decrease colortemp continuously to detect an alive = false situation.
-          if (light.lightList[0].spectrum == "none") {
-            //doesnt work for no-spectrum lights unfortunately
-            node.server.tradfri.operateLight(light,{"transitionTime":light.lightList[0].transitionTime + node.direction});
+          if (light.lightList[0].spectrum === "none") {
+            //doesnt work for no-spectrum lights, hub never reports back correct status unless brightness is changed. Unfortunately doing so turns on
+            //a lamp that was switched off
+            node.server.tradfri.operateLight(light,{"dimmer":(light.lightList[0].onOff?light.lightList[0].colorTemperature:0)},true).then(_ => {
+            }).catch((err) => {node.debuglog("caught checkloop error " + err.message,"error"); clearInterval(node.aliveCheckinterval)});
           }else{
-            light.lightList[0].setColorTemperature(light.lightList[0].colorTemperature + node.direction).then(_ => {
-            }).catch((err) => node.debuglog("caught checkloop error " + err.message,"error"));
+            node.server.tradfri.operateLight(light,{"dimmer":light.lightList[0].colorTemperature},true).then(_ => {
+            }).catch((err) => {node.debuglog("caught checkloop error " + err.message,"error"); clearInterval(node.aliveCheckinterval)});
           }
           node.direction *= -1;
         }
@@ -107,6 +122,7 @@ module.exports = function (RED) {
 
     node.registeredCallback = function(message) {
       let statusObject;
+
       let actions = {
         "status": function(message) {
           let lightObject = serialise.lightFromAccessory(message.content);

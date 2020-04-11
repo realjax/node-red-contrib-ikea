@@ -1,4 +1,4 @@
-# node-red-contrib-ikea-home-smart
+# node-red-contrib-ikea
 
 * [Changelog](RELEASE_NOTES.md)
 
@@ -10,21 +10,20 @@ Currently only a number of Ikea's Tradfri devices are supported.  The main diffe
 * Control/query the Tradfri gateway itself as well and for instance request lists of lights, groups and scenes.
 * Detect `alive` state: whether lights are being switched off using conventional (wall) switches. _Only works for spectrum lights, ie: white spectrum or RGB_
 * Lights and groups can be toggled ( when off switch on and vice versa), turned on or off and control brightness or color. The status of a light can also be retrieved. 
-* Does not require installing additional tools (eg. COAP clients)
+* Does not require installing additional stand alone tools (COAP client is integrated)
 
 ### Why another Ikea node for Node-RED?
 
 There are several reasons; the already existing nodes were either too limited, outdated and/or not open for further development. But the main 
 reason for me was the fact that the existing ones do not take the use of conventional (wall) switches into account. A hub can't 'see' when a light was switched off by cutting its power. 
-When that happens the hub has no reason to think the light is off and reports it is still on.
+When that happens the hub has no reason to think the light is off and reports it as still on.
 It could easily be fixed if a hub would check every so often if a light bulb is still `alive`.<br>
 And that is exactly what this node does.<br>
-It is done by sending a state change to a light bulb (which currently has `alive` set to true) every so many seconds. 
-After a few tries the hub detects it can't set the state and reports back the correct `alive` state of the bulb (`alive` is false). The node then stops checking the 
+It is done by force sending the light bulb's state to the bulb (a bulb, which currently has `alive` set to true) every so many seconds. 
+After a few tries the hub detects it can't set it and reports back the correct `alive` state of the bulb (`alive` is false). The node then stops checking the 
 bulb until it is switched on again. 
-Because I use Alcalzone's [Node-tradfri-client](https://github.com/AlCalzone/node-tradfri-client) it is unfortunately not possible 
-to send the exact same state to a light bulb. The node-tradfr-client detects it contains no changes and doesn't send it out. So a slight change is needed.
-Spectrum lights (RGB and white spectrum) allow the brightness to be changed without it affecting the visible state of the bulb. <br>
+
+Spectrum lights (RGB and white spectrum) allow the brightness to be changed without it affecting the visible state of the bulb. 
 However,when you change the brightness of a switched off, non-spectrum light bulb (the cheapest Ikea ones) it *also* switches the bulb on!<br>
 This is the reason you can only track the 'alive' state of spectrum lights in this node. You can also only track the `alive` state of a group when that group contains 
 at least one spectrum light.          
@@ -41,7 +40,7 @@ To install this module use Node-Red GUI installer.
 Or run this console command in the `.node-red` folder:
 
 ```
-npm i node-red-contrib-ikea-home-smart
+npm i node-red-contrib-ikea
 ```
 
 ### Example
@@ -65,8 +64,7 @@ You can reboot it by sending the following payload to a gateway node:
 ```js
 {"cmd":"reboot"}
 ```  
-* Be aware that after an (automatic) update of the firmware of the gateway or your lamps, strange things may occur to your lights. This is not 
-caused by this plugin. If you're lucky only the light settings get messed up (color and/or brightness) but lights may also vanish and then you have to manually re-add them again using an Ikea remote. When this happens 
+* Be aware that after an (automatic) update of the firmware of the gateway or your lamps, strange things may occur to your lights.  If you're lucky only the light settings get messed up (color and/or brightness) but lights may also vanish and then you have to manually re-add them again using an Ikea remote. When this happens 
 you also have to renew the corresponding light nodes and/or group nodes (even when you name them exactly the same) because the internal ID's get changed and this plugin will 
 no longer be able to find them, unless you re-select, save and deploy them. 
 * Alive status detection only works on spectrum lights, ie: white spectrum or RGB
@@ -75,5 +73,5 @@ no longer be able to find them, unless you re-select, save and deploy them.
 
 ## Bugs and other issues:
 This has been in development for quite some time and has also been running in my own home for a while. Still, bugs will most likely surface at some point. 
-If you find any please open an issue on the projects github repository here :   
-<https://github.com/realjax/node-red-contrib-ikea-home-smart/issues>
+If you find any, please [open an issue](https://github.com/realjax/node-red-contrib-ikea/issues).   
+

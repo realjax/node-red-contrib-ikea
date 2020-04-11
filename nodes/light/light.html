@@ -11,7 +11,7 @@
       name:          {value:""},
       deviceId:      {value: "", required:true, validate:RED.validators.number()},
       deviceName:    {value: ""},
-      removed:       {value: false},
+      isDetectable:  {value: "0"},
       detectAlive:   {value: false}
     },
     align: 'left',
@@ -25,23 +25,28 @@
     label: function () {
       return this.name || "Ikea light";
     },
-    oneditprepare: () => {
+    oneditprepare: function() {
       let lookupButton = $('#node-device-lookup');
       let inputLookup = $('#node-input-deviceName');
       let detectAliveCheckbox = $('#node-input-detectAlive');
+      let hiddenIsDetectable = $('#node-input-isDetectable');
       let detectAliveLabel = $('#label-detectAlive');
       let selectState = (spectrumLight) => {
           if(!spectrumLight){
+              $('#aliveBlock').addClass('hidden');
               detectAliveCheckbox.prop( "checked", false );
               detectAliveCheckbox.prop('disabled', true);
               detectAliveLabel.addClass('disabled');
+              hiddenIsDetectable.val(0);
           }else{
+              $('#aliveBlock').removeClass('hidden');
               detectAliveCheckbox.prop('disabled', false);
               detectAliveLabel.removeClass('disabled');
+              hiddenIsDetectable.val(1);
           }
       }
 
-      selectState(detectAliveCheckbox.is(":checked"));
+      selectState(parseInt(this.isDetectable));
 
       lookupButton.click(function() {
         lookupInputWas = inputLookup.val();
@@ -91,10 +96,11 @@
         <input type="text" id="node-input-deviceName" placeholder="none" style="width:60%;" readonly>
         <a id="node-device-lookup" class="btn"><i id="node-device-lookup-icon" class="fa fa-search"></i></a>
     </div>
-     <div class="form-row">
+     <div class="form-row" id="aliveBlock">
         <label>&nbsp;</label>
         <input type="checkbox" id="node-input-detectAlive" style="display: inline-block; width: auto; vertical-align: top;">
         <label id="label-detectAlive" for="node-input-detectAlive" style="width: 70%;" >Detect light is  alive?</label>
+        <input type = "hidden" id="node-input-isDetectable">
     </div>
 </script>
 
@@ -239,8 +245,9 @@
 
 
     <h3>References</h3>
-    <ul>
-        <li><a>GitHub</a> - the nodes github repository</li>
+   <ul>
+        <li><a href="https://github.com/realjax/node-red-contrib-ikea">GitHub</a> - the nodes github repository</li>
+        <li>Report bugs/issues <a href="https://github.com/realjax/node-red-contrib-ikea/issues">here</a>.</li>
         <li>AlCalzone's <a href="https://github.com/AlCalzone/node-tradfri-client">node-tradfri-client</a></li>
         <li>Ikea Home Smart <a href="https://ww8.ikea.com/ikeahomesmart/releasenotes/releasenotes.html">release notes</a>
     </ul>

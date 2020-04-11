@@ -4,7 +4,7 @@ const serialise = require('../common/serialise');
 
 module.exports = function (RED) {
 
-  RED.log.info("Ikea Home Smart version " + require('../package.json').version );
+  RED.log.info("Ikea version " + require('../package.json').version );
 
   function IkeaGatewayConfigNode(config) {
     RED.nodes.createNode(this, config);
@@ -395,4 +395,4 @@ module.exports = function (RED) {
 
   RED.nodes.registerType("ikea-smart-devices-gateway-config", IkeaGatewayConfigNode);
 
-};
+};// TODO: probleem met eerste start en aanmaken lamp oplossen.
