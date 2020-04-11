@@ -100,7 +100,7 @@ module.exports = function (RED) {
           if (node.groupReachable) {
             node.debuglog("in the aliveCheckLoop every "+ secondsInterval/1000 + " seconds");
             // resend settings  to detect an alive = false situation.
-             node.server.tradfri.operateLight( node.spectrumLight,{"dimmer": node.spectrumLight.lightList[0].colorTemperature},true).then(_ => {
+             node.server.tradfri.operateLight( node.spectrumLight,{"dimmer": node.spectrumLight.lightList[0].brightness},true).then(_ => {
              }).catch((err) => {node.debuglog("caught checkloop error " + err.message,"error"); clearInterval(node.aliveCheckinterval)});
             node.direction *= -1;
           }

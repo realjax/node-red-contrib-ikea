@@ -77,9 +77,10 @@ module.exports = function (RED) {
     node.doAction = function(msg){
       let action = msg.payload.cmd.toUpperCase()
       node.retMsg = null;
+
       let runAction = {
         "GETSTATUS" : _ => node.retMsg = {"payload": {"status": serialise.lightFromAccessory(node.server.getAccessory(config.deviceId))}},
-        "TOGGLE" : _ => node.light.lightList[0].toggle().catch((err) => node.debuglog(err.message,"error")),
+        "TOGGLE" : _ =>  node.customToggle(),
         "TURNON" :_ => node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),{onOff:true},true).catch((err) => node.debuglog(err.message,"error")),
         "TURNOFF" : _ => node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),{onOff:false},true).catch((err) => node.debuglog(err.message,"error")),
         "SETPROPERTIES": (payload) => {
@@ -97,11 +98,19 @@ module.exports = function (RED) {
       return (runAction[action] || runAction['default'])(msg.payload);
     };
 
+    node.customToggle = function(){
+      let currentState = serialise.lightFromAccessory(node.server.getAccessory(config.deviceId)).on;
+      if (currentState == false){
+        node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),{onOff:true},true).catch((err) => node.debuglog(err.message,"error"))
+      }else{
+        node.server.tradfri.operateLight(node.server.getAccessory(config.deviceId),{onOff:false},true).catch((err) => node.debuglog(err.message,"error"))
+      }
+    }
+
     node.aliveCheckLoop = function(){
       let secondsInterval = 20000 + ((Math.floor(Math.random() * 20) + 1 ) * 1000); // random between 20 and 40 seconds.
       node.aliveCheckinterval = setInterval(() => {
         let light = node.server.getAccessory(config.deviceId);
-
         if (node.lightReachable) {
           node.debuglog("in the aliveCheckLoop every "+ secondsInterval/1000 + " seconds");
           // increase and decrease colortemp continuously to detect an alive = false situation.
@@ -111,7 +120,7 @@ module.exports = function (RED) {
             node.server.tradfri.operateLight(light,{"dimmer":(light.lightList[0].onOff?light.lightList[0].colorTemperature:0)},true).then(_ => {
             }).catch((err) => {node.debuglog("caught checkloop error " + err.message,"error"); clearInterval(node.aliveCheckinterval)});
           }else{
-            node.server.tradfri.operateLight(light,{"dimmer":light.lightList[0].colorTemperature},true).then(_ => {
+            node.server.tradfri.operateLight(light,{"dimmer":light.lightList[0].brightness},true).then(_ => {
             }).catch((err) => {node.debuglog("caught checkloop error " + err.message,"error"); clearInterval(node.aliveCheckinterval)});
           }
           node.direction *= -1;
